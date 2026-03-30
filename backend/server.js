@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
@@ -11,8 +12,11 @@ const reviewsRoutes = require('./routes/reviews');
 const paymentsRoutes = require('./routes/payments');
 const matchingRoutes = require('./routes/matching');
 const documentsRoutes = require('./routes/documents');
+const chatRoutes = require('./routes/chat');
+const { initSocketServer } = require('./socket');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 const mongoUri = process.env.MONGO_URI;
 
@@ -40,6 +44,7 @@ app.use('/api/reviews', reviewsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/matching', matchingRoutes);
 app.use('/api/documents', documentsRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -56,7 +61,8 @@ mongoose
   .connect(mongoUri)
   .then(() => {
     console.log('MongoDB connected');
-    app.listen(PORT, () => {
+    initSocketServer(server);
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })

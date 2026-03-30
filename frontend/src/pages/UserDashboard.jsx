@@ -5,6 +5,7 @@ import { FileText, FolderOpen, Gavel, TimerReset } from 'lucide-react';
 import api from '../api';
 import Navbar from '../components/Navbar';
 import CaseCard from '../components/CaseCard';
+import { getSocket } from '../socket';
 
 function StatCard({ label, value, icon: Icon, tone }) {
   return (
@@ -39,6 +40,28 @@ export default function UserDashboard() {
     };
 
     loadCases();
+  }, []);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (!socket) {
+      return undefined;
+    }
+
+    const handleCaseUpdated = () => {
+      api.get('/cases/my-cases')
+        .then(({ data }) => setCases(data.cases))
+        .catch((error) => {
+          toast.error(error.response?.data?.message || 'Failed to refresh cases');
+        });
+    };
+
+    socket.on('case:updated', handleCaseUpdated);
+
+    return () => {
+      socket.off('case:updated', handleCaseUpdated);
+    };
   }, []);
 
   const stats = useMemo(() => {

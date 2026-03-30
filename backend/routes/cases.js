@@ -6,6 +6,7 @@ const Lawyer = require('../models/Lawyer');
 const { upload, isCloudinaryConfigured } = require('../config/cloudinary');
 const { analyzeCaseWithGemini } = require('../utils/aiAnalysis');
 const { sendEmail, isEmailConfigured } = require('../utils/mailer');
+const { emitCaseAvailable, emitCaseUpdate } = require('../socket');
 
 const router = express.Router();
 
@@ -30,6 +31,13 @@ function mapUploadedDocuments(files) {
 
 function urgencyPriority(urgency) {
   return { high: 0, medium: 1, low: 2 }[urgency] ?? 3;
+}
+
+function canAccessCase(caseDoc, user) {
+  const isOwner = caseDoc.userId?._id?.toString?.() === user.id || caseDoc.userId?.toString?.() === user.id;
+  const isAssignedLawyer = caseDoc.assignedLawyer?._id?.toString?.() === user.id || caseDoc.assignedLawyer?.toString?.() === user.id;
+
+  return { isOwner, isAssignedLawyer };
 }
 
 router.post('/submit', authMiddleware, upload.array('documents', 5), async (req, res) => {
@@ -74,6 +82,8 @@ router.post('/submit', authMiddleware, upload.array('documents', 5), async (req,
     await User.findByIdAndUpdate(req.user.id, {
       $addToSet: { cases: createdCase._id },
     });
+
+    emitCaseAvailable(createdCase, { action: 'submitted' });
 
     return res.status(201).json({
       case: createdCase,
@@ -153,8 +163,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Case not found' });
     }
 
-    const isOwner = caseDoc.userId?._id.toString() === req.user.id;
-    const isAssignedLawyer = caseDoc.assignedLawyer?._id.toString() === req.user.id;
+    const { isOwner, isAssignedLawyer } = canAccessCase(caseDoc, req.user);
 
     if (!isOwner && !isAssignedLawyer) {
       return res.status(403).json({ message: 'Access denied' });
@@ -206,8 +215,12 @@ router.post('/:id/accept', authMiddleware, async (req, res) => {
       }).catch((error) => console.error('Email send failed:', error.message));
     }
 
+    const populatedCase = await caseDoc.populate('assignedLawyer', 'name email phone location rating totalRatings specializations');
+
+    emitCaseUpdate(populatedCase, { action: 'accepted' });
+
     return res.status(200).json({
-      case: await caseDoc.populate('assignedLawyer', 'name email phone location rating totalRatings specializations'),
+      case: populatedCase,
     });
   } catch (error) {
     console.error(error);
@@ -223,8 +236,8 @@ router.post('/:id/update-status', authMiddleware, async (req, res) => {
 
     const { status, outcome } = req.body;
 
-    if (!['in-progress', 'resolved'].includes(status)) {
-      return res.status(400).json({ message: 'Status must be either in-progress or resolved' });
+    if (!['assigned', 'in-progress', 'resolved'].includes(status)) {
+      return res.status(400).json({ message: 'Status must be assigned, in-progress, or resolved' });
     }
 
     const caseDoc = await Case.findById(req.params.id).populate('userId', 'email name');
@@ -251,6 +264,11 @@ router.post('/:id/update-status', authMiddleware, async (req, res) => {
 
     if (status === 'resolved') {
       caseDoc.outcome = outcome;
+      caseDoc.outcomeDate = new Date();
+      caseDoc.caseTimeline = {
+        ...caseDoc.caseTimeline,
+        actualEndDate: new Date(),
+      };
       lawyer.activeCases = lawyer.activeCases.filter((caseId) => caseId.toString() !== caseDoc._id.toString());
 
       if (outcome === 'won') {
@@ -258,6 +276,8 @@ router.post('/:id/update-status', authMiddleware, async (req, res) => {
       } else if (outcome === 'lost') {
         lawyer.casesLost += 1;
       }
+    } else {
+      caseDoc.outcome = 'pending';
     }
 
     await Promise.all([caseDoc.save(), lawyer.save()]);
@@ -270,12 +290,77 @@ router.post('/:id/update-status', authMiddleware, async (req, res) => {
       }).catch((error) => console.error('Email send failed:', error.message));
     }
 
+    const populatedCase = await caseDoc.populate('assignedLawyer', 'name email phone location rating totalRatings specializations');
+
+    emitCaseUpdate(populatedCase, { action: 'status-changed' });
+
     return res.status(200).json({
-      case: await caseDoc.populate('assignedLawyer', 'name email phone location rating totalRatings specializations'),
+      case: populatedCase,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Failed to update case status' });
+  }
+});
+
+router.post('/:id/close', authMiddleware, async (req, res) => {
+  try {
+    const caseDoc = await Case.findById(req.params.id)
+      .populate('userId', 'name email')
+      .populate('assignedLawyer', 'name email');
+
+    if (!caseDoc) {
+      return res.status(404).json({ message: 'Case not found' });
+    }
+
+    const { isOwner, isAssignedLawyer } = canAccessCase(caseDoc, req.user);
+
+    if (!isOwner && !isAssignedLawyer) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    if (caseDoc.status === 'closed') {
+      return res.status(400).json({ message: 'Case is already closed' });
+    }
+
+    if (!['open', 'resolved'].includes(caseDoc.status)) {
+      return res.status(400).json({ message: 'Only open or resolved cases can be closed' });
+    }
+
+    const previousStatus = caseDoc.status;
+
+    caseDoc.status = 'closed';
+    caseDoc.caseTimeline = {
+      ...caseDoc.caseTimeline,
+      actualEndDate: caseDoc.caseTimeline?.actualEndDate || new Date(),
+    };
+
+    if (previousStatus === 'open') {
+      caseDoc.outcome = 'pending';
+    }
+
+    await caseDoc.save();
+
+    const populatedCase = await caseDoc.populate('assignedLawyer', 'name email phone location rating totalRatings specializations');
+
+    emitCaseUpdate(populatedCase, { action: 'closed' });
+
+    if (isEmailConfigured) {
+      const recipient = isOwner ? caseDoc.assignedLawyer?.email : caseDoc.userId?.email;
+
+      if (recipient) {
+        await sendEmail({
+          to: recipient,
+          subject: 'Your AI Lawyer case was closed',
+          text: `The case "${caseDoc.title}" has been marked as closed.`,
+        }).catch((error) => console.error('Email send failed:', error.message));
+      }
+    }
+
+    return res.status(200).json({ case: populatedCase });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to close case' });
   }
 });
 

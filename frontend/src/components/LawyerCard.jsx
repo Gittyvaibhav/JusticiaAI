@@ -14,7 +14,8 @@ function StarRating({ rating }) {
 }
 
 export default function LawyerCard({ lawyer, action, showContact = false }) {
-  const numericWinRate = lawyer.winRate === null || lawyer.winRate === undefined ? null : Math.max(0, Math.min(100, Number(lawyer.winRate || 0)));
+  const parsedWinRate = Number(lawyer.winRate);
+  const numericWinRate = Number.isFinite(parsedWinRate) ? Math.max(0, Math.min(100, parsedWinRate)) : 0;
   const isPublicListing = lawyer.source === 'google-maps';
 
   return (

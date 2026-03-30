@@ -3,13 +3,33 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --ink-950: #111827;
+    --ink-900: #182338;
+    --paper-50: #f8fafc;
+    --accent-gold: #c79a3b;
+    --accent-teal: #0f766e;
+  }
+
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    @apply text-slate-900 antialiased;
+    background:
+      radial-gradient(circle at top left, rgba(199, 154, 59, 0.16), transparent 22rem),
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 20rem),
+      linear-gradient(180deg, #f8fafc 0%, #eef2f7 48%, #f8fafc 100%);
+    font-family: "Aptos", "Trebuchet MS", "Segoe UI", sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: Georgia, "Times New Roman", serif;
+    letter-spacing: -0.02em;
   }
 
   #root {

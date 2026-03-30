@@ -43,6 +43,7 @@ export default function App() {
           <Route path="/lawyer/dashboard" element={<LawyerDashboard />} />
           <Route path="/lawyer/available-cases" element={<AvailableCases />} />
           <Route path="/lawyer/active-cases" element={<ActiveCases />} />
+          <Route path="/lawyer/case/:id" element={<CaseDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

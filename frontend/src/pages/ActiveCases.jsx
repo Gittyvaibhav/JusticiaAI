@@ -59,7 +59,7 @@ export default function ActiveCases() {
               const selectedStatus = currentUpdate.status || 'in-progress';
 
               return (
-                <CaseCard key={caseItem._id} caseItem={caseItem} showSummary>
+                <CaseCard key={caseItem._id} caseItem={caseItem} showSummary detailPath={`/lawyer/case/${caseItem._id}`}>
                   <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
                     <div className="space-y-3 rounded-2xl bg-slate-50 p-5 text-sm text-slate-700">
                       <p><span className="font-semibold text-slate-900">Client:</span> {caseItem.userId?.name}</p>
