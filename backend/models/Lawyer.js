@@ -97,6 +97,44 @@ const lawyerSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  pricingType: {
+    type: String,
+    enum: ['hourly', 'fixed', 'both'],
+    default: 'fixed',
+  },
+  hourlyRate: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  averageFixedFee: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  feesByPracticeArea: [
+    {
+      area: String,
+      fee: Number,
+    },
+  ],
+  badges: [
+    {
+      type: String,
+      enum: ['verified', 'bar-certified', 'top-rated', 'affordable', 'responsive'],
+    },
+  ],
+  responseTime: {
+    type: String,
+    default: '24-48 hours',
+  },
+  successRate: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100,
+  },
+  languages: [String],
   activeCases: [
     {
       type: mongoose.Schema.Types.ObjectId,

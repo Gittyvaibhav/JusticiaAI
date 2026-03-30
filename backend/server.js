@@ -7,6 +7,10 @@ const authRoutes = require('./routes/auth');
 const casesRoutes = require('./routes/cases');
 const lawyersRoutes = require('./routes/lawyers');
 const aiRoutes = require('./routes/ai');
+const reviewsRoutes = require('./routes/reviews');
+const paymentsRoutes = require('./routes/payments');
+const matchingRoutes = require('./routes/matching');
+const documentsRoutes = require('./routes/documents');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +36,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/cases', casesRoutes);
 app.use('/api/lawyers', lawyersRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/reviews', reviewsRoutes);
+app.use('/api/payments', paymentsRoutes);
+app.use('/api/matching', matchingRoutes);
+app.use('/api/documents', documentsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

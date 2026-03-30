@@ -68,12 +68,32 @@ const caseSchema = new mongoose.Schema({
     enum: ['won', 'lost', 'settled', 'pending'],
     default: 'pending',
   },
+  outcomeDescription: String,
+  outcomeDate: Date,
   lawyerRating: {
     type: Number,
     min: 1,
     max: 5,
   },
   lawyerReview: String,
+  budget: {
+    type: Number,
+    min: 0,
+  },
+  matchingScore: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100,
+  },
+  caseTimeline: {
+    startDate: {
+      type: Date,
+      default: Date.now,
+    },
+    estimatedEndDate: Date,
+    actualEndDate: Date,
+  },
 }, {
   timestamps: true,
 });
