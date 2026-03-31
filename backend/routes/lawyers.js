@@ -2,6 +2,7 @@ const express = require('express');
 const authMiddleware = require('../middleware/authMiddleware');
 const Lawyer = require('../models/Lawyer');
 const Case = require('../models/Case');
+const { rankLawyersForCase } = require('../utils/recommendationEngine');
 
 const router = express.Router();
 
@@ -110,6 +111,11 @@ async function searchNearbyPublicLawyers({ location, latitude, longitude, caseTy
     specializations: caseType ? [caseType] : [],
     coordinates: place.location || null,
     businessStatus: place.businessStatus || '',
+    recommendationReasons: [
+      'Shown because it is geographically near the case location.',
+      'This is a public listing and has not been verified by the platform.',
+    ],
+    recommendationSummary: 'Public nearby listing surfaced for additional discovery outside the verified platform network.',
   }));
 
   return {
@@ -140,10 +146,11 @@ router.get('/match/:caseId', authMiddleware, async (req, res) => {
       verified: true,
     })
       .select('-password')
-      .sort({ winRate: -1, rating: -1 })
-      .limit(5);
+      .limit(12);
 
-    return res.status(200).json({ lawyers });
+    const rankedLawyers = rankLawyersForCase(caseDoc, lawyers).slice(0, 5);
+
+    return res.status(200).json({ lawyers: rankedLawyers });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Failed to match lawyers' });
@@ -171,8 +178,9 @@ router.get('/discover/:caseId', authMiddleware, async (req, res) => {
       verified: true,
     })
       .select('-password')
-      .sort({ winRate: -1, rating: -1 })
-      .limit(5);
+      .limit(12);
+
+    const rankedRegisteredLawyers = rankLawyersForCase(caseDoc, registeredLawyers).slice(0, 5);
 
     let nearbyPublic = {
       publicLawyers: [],
@@ -196,12 +204,26 @@ router.get('/discover/:caseId', authMiddleware, async (req, res) => {
     }
 
     return res.status(200).json({
-      registeredLawyers,
+      registeredLawyers: rankedRegisteredLawyers,
       publicLawyers: nearbyPublic.publicLawyers,
       meta: {
         mapsConfigured: Boolean(GOOGLE_MAPS_API_KEY),
         publicSearchSource: nearbyPublic.source,
         publicSearchMessage: nearbyPublic.message,
+        recommendationContext: {
+          lawyerTypeNeeded: caseDoc.aiLawyerTypeNeeded || '',
+          forum: caseDoc.aiLikelyForum || '',
+          checklist: caseDoc.aiProceduralChecklist || '',
+          documentsNeeded: caseDoc.aiDocumentsNeeded || '',
+        },
+      },
+      verifiedSection: {
+        title: 'Verified platform lawyers',
+        description: 'These lawyers are platform-verified and ranked using the AI case analysis, legal fit, location, experience, rating, and practical case signals.',
+      },
+      publicSection: {
+        title: 'Public nearby listings',
+        description: 'These listings come from Google Maps and are not verified by the platform. Treat them as outside leads, not in-platform recommendations.',
       },
     });
   } catch (error) {

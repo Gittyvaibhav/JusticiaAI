@@ -21,11 +21,29 @@ RELEVANT LAWS AND SECTIONS:
 IMMEDIATE NEXT STEPS:
 [List 4-5 clear, actionable steps the person should take right now, numbered]
 
+PROCEDURAL CHECKLIST:
+[List the likely process ahead in numbered order, such as complaint, notice, filing, mediation, hearing, evidence, or appeal. Keep it practical.]
+
+DOCUMENTS AND EVIDENCE TO GATHER:
+[List the most important documents, records, notices, IDs, contracts, screenshots, receipts, witness details, or evidence to prepare.]
+
+LIKELY FORUM OR AUTHORITY:
+[State the likely court, tribunal, police authority, department, or forum that may handle the matter. Mention if it depends on facts or jurisdiction.]
+
+EXPECTED TIMELINE:
+[Give a practical estimate of what may happen in the next 48 hours, next 2-4 weeks, and longer term.]
+
+KEY RISKS OR WEAKNESSES:
+[List the main legal or practical risks, missing facts, evidence gaps, delay risks, or defense points that could weaken the case.]
+
 CASE STRENGTH:
 [State: Weak / Moderate / Strong - then explain why in 1-2 sentences]
 
 LAWYER TYPE NEEDED:
 [Describe exactly what kind of lawyer they need and why]
+
+WHY THESE LAWYERS SHOULD FIT:
+[Explain in 2-4 bullet points what qualities, experience, location, communication style, or pricing signals should be used to choose the best lawyer for this case.]
 
 IMPORTANT DISCLAIMER:
 This is AI-generated legal information for guidance only. Please consult a qualified lawyer before taking any legal action.`;
@@ -52,10 +70,16 @@ function parseGeminiResponse(text) {
     fullResponse: normalizedText,
     caseSummary: section('CASE SUMMARY', 'RELEVANT LAWS AND SECTIONS'),
     relevantLaws: section('RELEVANT LAWS AND SECTIONS', 'IMMEDIATE NEXT STEPS'),
-    nextSteps: section('IMMEDIATE NEXT STEPS', 'CASE STRENGTH'),
+    nextSteps: section('IMMEDIATE NEXT STEPS', 'PROCEDURAL CHECKLIST'),
+    proceduralChecklist: section('PROCEDURAL CHECKLIST', 'DOCUMENTS AND EVIDENCE TO GATHER'),
+    documentsNeeded: section('DOCUMENTS AND EVIDENCE TO GATHER', 'LIKELY FORUM OR AUTHORITY'),
+    likelyForum: section('LIKELY FORUM OR AUTHORITY', 'EXPECTED TIMELINE'),
+    expectedTimeline: section('EXPECTED TIMELINE', 'KEY RISKS OR WEAKNESSES'),
+    keyRisks: section('KEY RISKS OR WEAKNESSES', 'CASE STRENGTH'),
     caseStrength,
     caseStrengthExplanation: caseStrengthBlock,
-    lawyerTypeNeeded: section('LAWYER TYPE NEEDED', 'IMPORTANT DISCLAIMER'),
+    lawyerTypeNeeded: section('LAWYER TYPE NEEDED', 'WHY THESE LAWYERS SHOULD FIT'),
+    lawyerFitRationale: section('WHY THESE LAWYERS SHOULD FIT', 'IMPORTANT DISCLAIMER'),
     disclaimer: section('IMPORTANT DISCLAIMER'),
   };
 }

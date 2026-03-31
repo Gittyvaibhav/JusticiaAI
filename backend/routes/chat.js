@@ -15,7 +15,7 @@ router.get('/conversations', authMiddleware, async (req, res) => {
 
     const cases = await Case.find(caseQuery)
       .sort({ updatedAt: -1 })
-      .select('title status updatedAt userId assignedLawyer')
+      .select('title status urgency updatedAt userId assignedLawyer aiCaseSummary aiCaseStrength aiLawyerTypeNeeded')
       .populate('userId', 'name role')
       .populate('assignedLawyer', 'name role')
       .lean();
@@ -47,7 +47,11 @@ router.get('/conversations', authMiddleware, async (req, res) => {
         caseId,
         title: caseDoc.title,
         status: caseDoc.status,
+        urgency: caseDoc.urgency,
         updatedAt: caseDoc.updatedAt,
+        aiCaseSummary: caseDoc.aiCaseSummary || '',
+        aiCaseStrength: caseDoc.aiCaseStrength || '',
+        aiLawyerTypeNeeded: caseDoc.aiLawyerTypeNeeded || '',
         counterpart: counterpart
           ? {
               _id: String(counterpart._id),

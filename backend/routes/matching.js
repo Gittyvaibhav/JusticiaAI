@@ -1,65 +1,10 @@
 const express = require('express');
 const Lawyer = require('../models/Lawyer');
 const Case = require('../models/Case');
+const { rankLawyersForCase, scoreLawyerForCase } = require('../utils/recommendationEngine');
 
 const router = express.Router();
 
-// Matching algorithm
-function calculateMatchingScore(caseData, lawyer) {
-  let score = 0;
-  let maxScore = 0;
-
-  // Specialization match (30 points)
-  maxScore += 30;
-  if (lawyer.specializations.includes(caseData.caseType)) {
-    score += 30;
-  }
-
-  // Location match (20 points)
-  maxScore += 20;
-  if (lawyer.location && caseData.location) {
-    const normalizedLawyerLoc = lawyer.location.toLowerCase();
-    const normalizedCaseLoc = caseData.location.toLowerCase();
-    if (normalizedLawyerLoc === normalizedCaseLoc || normalizedLawyerLoc.includes(normalizedCaseLoc)) {
-      score += 20;
-    }
-  }
-
-  // Rating (20 points)
-  maxScore += 20;
-  if (lawyer.rating) {
-    score += (lawyer.rating / 5) * 20;
-  }
-
-  // Experience (15 points)
-  maxScore += 15;
-  if (lawyer.experience) {
-    const yearsScore = Math.min((lawyer.experience / 10) * 15, 15);
-    score += yearsScore;
-  }
-
-  // Budget compatibility (10 points)
-  maxScore += 10;
-  if (caseData.budget && (lawyer.averageFixedFee || lawyer.hourlyRate)) {
-    const lawyerFee = lawyer.averageFixedFee || (lawyer.hourlyRate * 100); // Estimate
-    if (lawyerFee <= caseData.budget) {
-      score += 10;
-    } else if (lawyerFee <= caseData.budget * 1.5) {
-      score += 5;
-    }
-  }
-
-  // Availability (5 points)
-  maxScore += 5;
-  if (lawyer.activeCases && lawyer.activeCases.length < 10) {
-    score += 5;
-  }
-
-  const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
-  return Math.round(percentage);
-}
-
-// Get matching lawyers for a case
 router.get('/case/:caseId', async (req, res) => {
   try {
     const { caseId } = req.params;
@@ -74,14 +19,11 @@ router.get('/case/:caseId', async (req, res) => {
       verified: true,
     }).limit(20);
 
-    const matchedLawyers = lawyers
-      .map(lawyer => ({
-        ...lawyer.toObject(),
-        matchingScore: calculateMatchingScore(caseData, lawyer),
-      }))
-      .sort((a, b) => b.matchingScore - a.matchingScore);
+    const matchedLawyers = rankLawyersForCase(caseData, lawyers).map((lawyer) => ({
+      ...lawyer,
+      matchingScore: lawyer.recommendationScore,
+    }));
 
-    // Update case with matching scores
     await Case.findByIdAndUpdate(caseId, {
       matchingScore: matchedLawyers.length > 0 ? matchedLawyers[0].matchingScore : 0,
     });
@@ -93,7 +35,6 @@ router.get('/case/:caseId', async (req, res) => {
   }
 });
 
-// Search lawyers with filters
 router.get('/search', async (req, res) => {
   try {
     const {
@@ -127,7 +68,6 @@ router.get('/search', async (req, res) => {
 
     let query = Lawyer.find(filter);
 
-    // Handle budget filter (with hourly rate estimation)
     if (maxBudget) {
       const budgetNum = parseFloat(maxBudget);
       query = query.where('$or', [
@@ -139,7 +79,7 @@ router.get('/search', async (req, res) => {
     const skip = (page - 1) * limit;
     const lawyers = await query
       .skip(skip)
-      .limit(parseInt(limit))
+      .limit(parseInt(limit, 10))
       .select('-password');
 
     const total = await Lawyer.countDocuments(filter);
@@ -147,7 +87,7 @@ router.get('/search', async (req, res) => {
     res.json({
       lawyers,
       total,
-      page: parseInt(page),
+      page: parseInt(page, 10),
       pages: Math.ceil(total / limit),
     });
   } catch (error) {
@@ -156,7 +96,6 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// Get lawyer recommendations for case type
 router.get('/recommendations/:caseType', async (req, res) => {
   try {
     const { caseType } = req.params;
@@ -165,18 +104,19 @@ router.get('/recommendations/:caseType', async (req, res) => {
       specializations: caseType,
       verified: true,
     })
-      .sort({ rating: -1 })
       .limit(10)
       .select('-password');
 
-    res.json(lawyers);
+    res.json(lawyers.map((lawyer) => ({
+      ...lawyer.toObject(),
+      ...scoreLawyerForCase({ caseType }, lawyer),
+    })));
   } catch (error) {
     console.error('Error getting recommendations:', error);
     res.status(500).json({ error: 'Error getting recommendations' });
   }
 });
 
-// Get top lawyers by location and specialization
 router.get('/top-rated', async (req, res) => {
   try {
     const { location, specialization, limit = 10 } = req.query;
@@ -197,7 +137,7 @@ router.get('/top-rated', async (req, res) => {
 
     const lawyers = await Lawyer.find(filter)
       .sort({ rating: -1 })
-      .limit(parseInt(limit))
+      .limit(parseInt(limit, 10))
       .select('-password');
 
     res.json(lawyers);

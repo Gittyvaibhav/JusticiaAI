@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { MessageSquare, Send, ShieldCheck } from 'lucide-react';
+import { MessageSquare, Search, Send, ShieldCheck } from 'lucide-react';
 import api from '../api';
 import Navbar from '../components/Navbar';
 import { getSocket } from '../socket';
 import { useAuth } from '../context/AuthContext';
+import './Messages.css';
 
 function formatTimestamp(value) {
   if (!value) {
@@ -26,9 +27,13 @@ function formatConversationTime(value) {
   return isSameDay ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : date.toLocaleDateString();
 }
 
-function buildPreview(conversation) {
+function buildPreview(conversation, currentUserId) {
   if (conversation.lastMessage?.message) {
-    return conversation.lastMessage.message;
+    return conversation.lastMessage.senderId === currentUserId ? `You: ${conversation.lastMessage.message}` : conversation.lastMessage.message;
+  }
+
+  if (conversation.aiCaseSummary) {
+    return conversation.aiCaseSummary;
   }
 
   return 'No messages yet. Start the conversation here.';
@@ -38,6 +43,7 @@ export default function Messages() {
   const { user, role } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryCaseId = searchParams.get('caseId') || '';
+  const unreadStorageKey = user?.id ? `messages-unread:${user.id}` : 'messages-unread:guest';
   const [conversations, setConversations] = useState([]);
   const [selectedCaseId, setSelectedCaseId] = useState(queryCaseId);
   const [messages, setMessages] = useState([]);
@@ -45,48 +51,90 @@ export default function Messages() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('recent');
+  const [unreadMap, setUnreadMap] = useState({});
   const bottomRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(unreadStorageKey);
+      setUnreadMap(stored ? JSON.parse(stored) : {});
+    } catch {
+      setUnreadMap({});
+    }
+  }, [unreadStorageKey]);
+
+  useEffect(() => {
+    window.localStorage.setItem(unreadStorageKey, JSON.stringify(unreadMap));
+  }, [unreadMap, unreadStorageKey]);
+
+  const markConversationRead = (caseId) => {
+    if (!caseId) {
+      return;
+    }
+
+    setUnreadMap((current) => ({
+      ...current,
+      [caseId]: 0,
+    }));
+  };
 
   const selectedConversation = useMemo(
     () => conversations.find((item) => item.caseId === selectedCaseId) || null,
     [conversations, selectedCaseId]
   );
 
+  const filteredConversations = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const nextItems = conversations.filter((item) => {
+      if (!query) {
+        return true;
+      }
+
+      return [
+        item.counterpart?.name,
+        item.title,
+        item.aiCaseSummary,
+        item.aiLawyerTypeNeeded,
+      ].some((value) => String(value || '').toLowerCase().includes(query));
+    });
+
+    nextItems.sort((a, b) => {
+      if (sortBy === 'unread') {
+        return (unreadMap[b.caseId] || 0) - (unreadMap[a.caseId] || 0) || new Date(b.updatedAt) - new Date(a.updatedAt);
+      }
+
+      if (sortBy === 'name') {
+        return String(a.counterpart?.name || '').localeCompare(String(b.counterpart?.name || ''));
+      }
+
+      return new Date(b.lastMessage?.createdAt || b.updatedAt) - new Date(a.lastMessage?.createdAt || a.updatedAt);
+    });
+
+    return nextItems;
+  }, [conversations, search, sortBy, unreadMap]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const loadConversations = async () => {
+    setLoadingConversations(true);
+
+    try {
+      const { data } = await api.get('/chat/conversations');
+      const nextConversations = data.conversations || [];
+      setConversations(nextConversations);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to load conversations');
+    } finally {
+      setLoadingConversations(false);
+    }
+  };
+
   useEffect(() => {
-    let active = true;
-
-    const loadConversations = async () => {
-      setLoadingConversations(true);
-
-      try {
-        const { data } = await api.get('/chat/conversations');
-
-        if (!active) {
-          return;
-        }
-
-        const nextConversations = data.conversations || [];
-        setConversations(nextConversations);
-      } catch (error) {
-        if (active) {
-          toast.error(error.response?.data?.message || 'Failed to load conversations');
-        }
-      } finally {
-        if (active) {
-          setLoadingConversations(false);
-        }
-      }
-    };
-
     loadConversations();
-
-    return () => {
-      active = false;
-    };
   }, []);
 
   useEffect(() => {
@@ -116,6 +164,7 @@ export default function Messages() {
 
         if (active) {
           setMessages(data.messages || []);
+          markConversationRead(selectedCaseId);
         }
       } catch (error) {
         if (active) {
@@ -142,56 +191,28 @@ export default function Messages() {
       return undefined;
     }
 
-    const handleMessage = (incomingMessage) => {
-      setConversations((current) => {
-        const existingConversation = current.find((item) => item.caseId === incomingMessage.caseId);
-
-        if (!existingConversation) {
-          return current;
-        }
-
-        const updatedConversation = {
-          ...existingConversation,
-          lastMessage: incomingMessage,
-          updatedAt: incomingMessage.createdAt,
-        };
-
-        return [
-          updatedConversation,
-          ...current.filter((item) => item.caseId !== incomingMessage.caseId),
-        ];
-      });
-
-      if (incomingMessage.caseId !== selectedCaseId) {
-        return;
-      }
-
-      setMessages((current) => (
-        current.some((item) => item._id === incomingMessage._id)
-          ? current
-          : [...current, incomingMessage]
-      ));
-    };
-
-    const handleChatNotification = (payload) => {
+    const handleIncoming = (payload) => {
       setConversations((current) => {
         const existingConversation = current.find((item) => item.caseId === payload.caseId);
 
         if (!existingConversation) {
+          loadConversations();
           return current;
         }
 
+        const nextLastMessage = payload.message ? payload : {
+          _id: `preview:${payload.caseId}:${payload.createdAt}`,
+          caseId: payload.caseId,
+          senderId: payload.senderId,
+          senderRole: payload.senderRole,
+          senderName: payload.senderName,
+          message: payload.message,
+          createdAt: payload.createdAt,
+        };
+
         const updatedConversation = {
           ...existingConversation,
-          lastMessage: {
-            _id: `preview:${payload.caseId}:${payload.createdAt}`,
-            caseId: payload.caseId,
-            senderId: payload.senderId,
-            senderRole: payload.senderRole,
-            senderName: payload.senderName,
-            message: payload.message,
-            createdAt: payload.createdAt,
-          },
+          lastMessage: nextLastMessage,
           updatedAt: payload.createdAt,
         };
 
@@ -200,21 +221,41 @@ export default function Messages() {
           ...current.filter((item) => item.caseId !== payload.caseId),
         ];
       });
+
+      if (payload.caseId === selectedCaseId) {
+        if (payload._id) {
+          setMessages((current) => (
+            current.some((item) => item._id === payload._id)
+              ? current
+              : [...current, payload]
+          ));
+        }
+        markConversationRead(payload.caseId);
+        return;
+      }
+
+      if (payload.senderId !== user?.id) {
+        setUnreadMap((current) => ({
+          ...current,
+          [payload.caseId]: (current[payload.caseId] || 0) + 1,
+        }));
+      }
     };
 
     socket.emit('chat:join', { caseId: selectedCaseId });
-    socket.on('chat:message', handleMessage);
-    socket.on('chat:notification', handleChatNotification);
+    socket.on('chat:message', handleIncoming);
+    socket.on('chat:notification', handleIncoming);
 
     return () => {
       socket.emit('chat:leave', { caseId: selectedCaseId });
-      socket.off('chat:message', handleMessage);
-      socket.off('chat:notification', handleChatNotification);
+      socket.off('chat:message', handleIncoming);
+      socket.off('chat:notification', handleIncoming);
     };
-  }, [selectedCaseId]);
+  }, [selectedCaseId, user?.id]);
 
   const selectConversation = (caseId) => {
     setSelectedCaseId(caseId);
+    markConversationRead(caseId);
 
     if (caseId) {
       setSearchParams({ caseId });
@@ -249,106 +290,137 @@ export default function Messages() {
     });
   };
 
+  const unreadTotal = Object.values(unreadMap).reduce((sum, count) => sum + Number(count || 0), 0);
+
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc,#eef2ff)]">
+    <div className="messages-page">
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className="overflow-hidden rounded-[38px] border border-white/80 bg-white/90 shadow-xl shadow-slate-200/70 backdrop-blur">
-          <div className="flex flex-wrap items-start justify-between gap-4 bg-[linear-gradient(135deg,#0f172a,#1e293b_55%,#0f766e)] px-8 py-8 text-white">
+      <main className="messages-page__main">
+        <section className="messages-page__shell">
+          <div className="messages-page__hero">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-emerald-100">Messages</p>
-              <h1 className="mt-3 text-3xl font-semibold">All conversations in one inbox</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-300">
-                Check every case conversation here, switch between threads quickly, and reply without opening each case separately.
+              <p className="messages-page__eyebrow">Messages</p>
+              <h1 className="messages-page__title">All conversations in one inbox</h1>
+              <p className="messages-page__subtitle">
+                Follow every assigned case discussion here, with unread indicators, quick search, and case context that helps you respond faster.
               </p>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">
-              <ShieldCheck className="h-4 w-4" />
-              Real-time inbox
+            <div className="messages-page__hero-badges">
+              <span className="messages-page__hero-chip">
+                <ShieldCheck className="messages-page__hero-chip-icon" />
+                Real-time inbox
+              </span>
+              <span className="messages-page__hero-chip">Unread {unreadTotal}</span>
             </div>
           </div>
 
-          <div className="grid min-h-[720px] lg:grid-cols-[340px_1fr]">
-            <aside className="border-b border-slate-200 bg-white lg:border-b-0 lg:border-r">
-              <div className="border-b border-slate-100 px-5 py-4">
-                <p className="text-sm font-semibold text-slate-900">{role === 'lawyer' ? 'Client conversations' : 'Lawyer conversations'}</p>
-                <p className="mt-1 text-sm text-slate-500">Tap a thread to open the full chat.</p>
+          <div className="messages-page__layout">
+            <aside className="messages-page__sidebar">
+              <div className="messages-page__sidebar-header">
+                <p className="messages-page__sidebar-title">{role === 'lawyer' ? 'Client conversations' : 'Lawyer conversations'}</p>
+                <p className="messages-page__sidebar-copy">Search threads, sort by recency or unread state, and jump right back into the right case.</p>
               </div>
 
-              <div className="max-h-[720px] overflow-y-auto">
-                {loadingConversations ? (
-                  <div className="p-5 text-sm text-slate-500">Loading conversations...</div>
-                ) : null}
+              <div className="messages-page__sidebar-controls">
+                <label className="messages-page__search">
+                  <Search className="messages-page__search-icon" />
+                  <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name, case, or summary" className="messages-page__search-input" />
+                </label>
+                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} className="messages-page__select">
+                  <option value="recent">Sort by recent</option>
+                  <option value="unread">Sort by unread</option>
+                  <option value="name">Sort by name</option>
+                </select>
+              </div>
 
-                {!loadingConversations && conversations.length === 0 ? (
-                  <div className="p-5">
-                    <div className="rounded-[28px] bg-slate-50 p-5 text-sm text-slate-500">
-                      No conversations yet. Once a case is assigned and someone starts chatting, it will appear here.
-                    </div>
+              <div className="messages-page__thread-list">
+                {loadingConversations ? <div className="messages-page__empty">Loading conversations...</div> : null}
+
+                {!loadingConversations && filteredConversations.length === 0 ? (
+                  <div className="messages-page__empty">
+                    {conversations.length === 0
+                      ? 'No conversations yet. Once a case is assigned and someone starts chatting, it will appear here.'
+                      : 'No conversations match your current search.'}
                   </div>
                 ) : null}
 
-                {conversations.map((conversation) => {
+                {filteredConversations.map((conversation) => {
                   const isActive = conversation.caseId === selectedCaseId;
+                  const unreadCount = unreadMap[conversation.caseId] || 0;
 
                   return (
                     <button
                       key={conversation.caseId}
                       type="button"
                       onClick={() => selectConversation(conversation.caseId)}
-                      className={`w-full border-b border-slate-100 px-5 py-4 text-left transition ${isActive ? 'bg-[linear-gradient(135deg,#eff6ff,#ecfeff)]' : 'bg-white hover:bg-slate-50'}`}
+                      className={`messages-page__thread ${isActive ? 'messages-page__thread--active' : ''}`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-900">{conversation.counterpart?.name || 'Conversation'}</p>
-                          <p className="mt-1 truncate text-xs uppercase tracking-[0.18em] text-slate-400">{conversation.title}</p>
+                      <div className="messages-page__thread-row">
+                        <div className="messages-page__thread-copy">
+                          <p className="messages-page__thread-name">{conversation.counterpart?.name || 'Conversation'}</p>
+                          <p className="messages-page__thread-case">{conversation.title}</p>
                         </div>
-                        <span className="shrink-0 text-xs text-slate-400">{formatConversationTime(conversation.lastMessage?.createdAt || conversation.updatedAt)}</span>
+                        <div className="messages-page__thread-side">
+                          <span className="messages-page__thread-time">{formatConversationTime(conversation.lastMessage?.createdAt || conversation.updatedAt)}</span>
+                          {unreadCount ? <span className="messages-page__thread-badge">{unreadCount}</span> : null}
+                        </div>
                       </div>
-                      <p className="mt-2 truncate text-sm text-slate-500">{buildPreview(conversation)}</p>
+                      <p className="messages-page__thread-preview">{buildPreview(conversation, user?.id)}</p>
+                      <div className="messages-page__thread-meta">
+                        <span className="messages-page__thread-meta-chip">{conversation.status}</span>
+                        {conversation.aiCaseStrength ? <span className="messages-page__thread-meta-chip">{conversation.aiCaseStrength}</span> : null}
+                        {conversation.urgency ? <span className="messages-page__thread-meta-chip">{conversation.urgency} urgency</span> : null}
+                      </div>
                     </button>
                   );
                 })}
               </div>
             </aside>
 
-            <section className="flex min-h-[720px] flex-col bg-[linear-gradient(180deg,#ffffff,#f8fafc)]">
+            <section className="messages-page__panel">
               {selectedConversation ? (
                 <>
-                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white/90 px-6 py-5">
+                  <div className="messages-page__panel-header">
                     <div>
-                      <p className="text-lg font-semibold text-slate-900">{selectedConversation.counterpart?.name || 'Conversation'}</p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {selectedConversation.title} • {selectedConversation.status}
-                      </p>
+                      <p className="messages-page__panel-name">{selectedConversation.counterpart?.name || 'Conversation'}</p>
+                      <p className="messages-page__panel-case">{selectedConversation.title} | {selectedConversation.status}</p>
+                    </div>
+                    <div className="messages-page__panel-tags">
+                      {selectedConversation.aiCaseStrength ? <span className="messages-page__panel-tag">{selectedConversation.aiCaseStrength}</span> : null}
+                      {selectedConversation.aiLawyerTypeNeeded ? <span className="messages-page__panel-tag">{selectedConversation.aiLawyerTypeNeeded}</span> : null}
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-                    {loadingMessages ? <p className="text-sm text-slate-500">Loading messages...</p> : null}
+                  {selectedConversation.aiCaseSummary ? (
+                    <div className="messages-page__case-note">
+                      <p className="messages-page__case-note-label">Case context</p>
+                      <p className="messages-page__case-note-copy">{selectedConversation.aiCaseSummary}</p>
+                    </div>
+                  ) : null}
+
+                  <div className="messages-page__messages">
+                    {loadingMessages ? <p className="messages-page__loading">Loading messages...</p> : null}
 
                     {!loadingMessages && messages.length === 0 ? (
-                      <div className="flex h-full min-h-[420px] flex-col items-center justify-center text-center">
-                        <div className="rounded-full bg-blue-50 p-4 text-blue-700">
-                          <MessageSquare className="h-6 w-6" />
+                      <div className="messages-page__blank-state">
+                        <div className="messages-page__blank-icon-wrap">
+                          <MessageSquare className="messages-page__blank-icon" />
                         </div>
-                        <p className="mt-4 text-base font-semibold text-slate-900">No messages yet</p>
-                        <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">Start this conversation and all future replies will stay organized in this inbox.</p>
+                        <p className="messages-page__blank-title">No messages yet</p>
+                        <p className="messages-page__blank-copy">Start this conversation and all future replies will stay organized in this inbox.</p>
                       </div>
                     ) : null}
 
-                    <div className="space-y-4">
+                    <div className="messages-page__message-list">
                       {messages.map((item) => {
                         const isOwnMessage = item.senderId === user?.id;
 
                         return (
-                          <div key={item._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[85%] rounded-[26px] px-4 py-3 shadow-sm ${isOwnMessage ? 'bg-[linear-gradient(135deg,#2563eb,#1d4ed8)] text-white shadow-blue-200/60' : 'border border-slate-200 bg-white text-slate-800'}`}>
-                              <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${isOwnMessage ? 'text-blue-100' : 'text-slate-500'}`}>
-                                {isOwnMessage ? 'You' : item.senderName}
-                              </p>
-                              <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{item.message}</p>
-                              <p className={`mt-2 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-slate-400'}`}>{formatTimestamp(item.createdAt)}</p>
+                          <div key={item._id} className={`messages-page__message-row ${isOwnMessage ? 'messages-page__message-row--own' : ''}`}>
+                            <div className={`messages-page__message ${isOwnMessage ? 'messages-page__message--own' : 'messages-page__message--other'}`}>
+                              <p className="messages-page__message-author">{isOwnMessage ? 'You' : item.senderName}</p>
+                              <p className="messages-page__message-body">{item.message}</p>
+                              <p className="messages-page__message-time">{formatTimestamp(item.createdAt)}</p>
                             </div>
                           </div>
                         );
@@ -357,42 +429,38 @@ export default function Messages() {
                     <div ref={bottomRef} />
                   </div>
 
-                  <div className="border-t border-slate-200 bg-white/90 p-4 sm:p-6">
-                    <div className="flex gap-3">
-                      <textarea
-                        rows="2"
-                        value={draft}
-                        onChange={(event) => setDraft(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' && !event.shiftKey) {
-                            event.preventDefault();
-                            sendMessage();
-                          }
-                        }}
-                        placeholder="Write a message..."
-                        className="w-full rounded-3xl border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-inner shadow-slate-100"
-                      />
-                      <button
-                        type="button"
-                        onClick={sendMessage}
-                        disabled={sending || !draft.trim()}
-                        className="inline-flex h-fit items-center gap-2 rounded-full bg-[linear-gradient(135deg,#0f172a,#1d4ed8)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200/60 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-                      >
-                        <Send className="h-4 w-4" />
-                        {sending ? 'Sending' : 'Send'}
-                      </button>
-                    </div>
+                  <div className="messages-page__composer">
+                    <textarea
+                      rows="2"
+                      value={draft}
+                      onChange={(event) => setDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' && !event.shiftKey) {
+                          event.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      placeholder="Write a message..."
+                      className="messages-page__composer-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={sendMessage}
+                      disabled={sending || !draft.trim()}
+                      className="messages-page__composer-button"
+                    >
+                      <Send className="messages-page__composer-button-icon" />
+                      {sending ? 'Sending' : 'Send'}
+                    </button>
                   </div>
                 </>
               ) : (
-                <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-                  <div className="rounded-full bg-blue-50 p-4 text-blue-700">
-                    <MessageSquare className="h-7 w-7" />
+                <div className="messages-page__blank-state messages-page__blank-state--panel">
+                  <div className="messages-page__blank-icon-wrap">
+                    <MessageSquare className="messages-page__blank-icon" />
                   </div>
-                  <p className="mt-4 text-lg font-semibold text-slate-900">Select a conversation</p>
-                  <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-                    Your assigned case chats will show here in one place, similar to a social inbox.
-                  </p>
+                  <p className="messages-page__blank-title">Select a conversation</p>
+                  <p className="messages-page__blank-copy">Your assigned case chats will show here in one place, with unread state and searchable thread history.</p>
                 </div>
               )}
             </section>

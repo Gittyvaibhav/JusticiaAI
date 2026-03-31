@@ -1,0 +1,123 @@
+.listing-page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.listing-page__main {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.listing-page__panel,
+.listing-page__empty,
+.listing-page__detail-card {
+  border-radius: 2rem;
+  background: #fff;
+  box-shadow: 0 18px 36px -24px rgba(148, 163, 184, 0.55);
+}
+
+.listing-page__panel,
+.listing-page__empty,
+.listing-page__detail-card {
+  padding: 1.5rem;
+}
+
+.listing-page__panel h1 {
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.listing-page__panel p,
+.listing-page__detail-card p,
+.listing-page__detail-card label {
+  margin-top: 0.6rem;
+  line-height: 1.8;
+  color: #64748b;
+}
+
+.listing-page__filters,
+.listing-page__detail-grid,
+.listing-page__active-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.listing-page__filters select,
+.listing-page__field select {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 1.1rem;
+  background: #fff;
+}
+
+.listing-page__stack {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.listing-page__detail-card {
+  background: #f8fafc;
+}
+
+.listing-page__detail-title {
+  margin-top: 0;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.listing-page__detail-card--form {
+  display: grid;
+  gap: 1rem;
+}
+
+.listing-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.listing-page__primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.9rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: #0d9488;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .listing-page__filters--three,
+  .listing-page__detail-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .listing-page__active-grid {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .listing-page__main {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .listing-page__panel,
+  .listing-page__empty,
+  .listing-page__detail-card {
+    padding: 1.2rem;
+  }
+
+  .listing-page__primary-button {
+    width: 100%;
+  }
+}

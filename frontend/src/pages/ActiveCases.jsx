@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import api from '../api';
 import Navbar from '../components/Navbar';
 import CaseCard from '../components/CaseCard';
+import './ActiveCases.css';
 
 export default function ActiveCases() {
   const [cases, setCases] = useState([]);
@@ -20,9 +21,7 @@ export default function ActiveCases() {
     }
   };
 
-  useEffect(() => {
-    loadCases();
-  }, []);
+  useEffect(() => { loadCases(); }, []);
 
   const handleUpdate = async (caseId) => {
     const current = updates[caseId] || {};
@@ -40,69 +39,55 @@ export default function ActiveCases() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="listing-page">
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className="rounded-[32px] bg-white p-8 shadow-md shadow-slate-200/60">
-          <h1 className="text-3xl font-semibold text-slate-900">My Active Cases</h1>
-          <p className="mt-3 text-sm text-slate-500">Update progress, resolve matters, and keep your client work moving.</p>
+      <main className="listing-page__main">
+        <section className="listing-page__panel">
+          <h1>My Active Cases</h1>
+          <p>Update progress, resolve matters, and keep your client work moving.</p>
         </section>
 
-        <section className="mt-8 space-y-5">
-          {loading ? (
-            <div className="rounded-3xl bg-white p-8 text-sm text-slate-500 shadow-md shadow-slate-200/60">Loading active cases...</div>
-          ) : cases.length === 0 ? (
-            <div className="rounded-3xl bg-white p-8 text-sm text-slate-500 shadow-md shadow-slate-200/60">You do not have any active cases right now.</div>
-          ) : (
-            cases.map((caseItem) => {
-              const currentUpdate = updates[caseItem._id] || {};
-              const selectedStatus = currentUpdate.status || 'in-progress';
+        <section className="listing-page__stack">
+          {loading ? <div className="listing-page__empty">Loading active cases...</div> : null}
+          {!loading && cases.length === 0 ? <div className="listing-page__empty">You do not have any active cases right now.</div> : null}
+          {!loading && cases.length > 0 ? cases.map((caseItem) => {
+            const currentUpdate = updates[caseItem._id] || {};
+            const selectedStatus = currentUpdate.status || 'in-progress';
 
-              return (
-                <CaseCard key={caseItem._id} caseItem={caseItem} showSummary detailPath={`/lawyer/case/${caseItem._id}`}>
-                  <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-                    <div className="space-y-3 rounded-2xl bg-slate-50 p-5 text-sm text-slate-700">
-                      <p><span className="font-semibold text-slate-900">Client:</span> {caseItem.userId?.name}</p>
-                      <p><span className="font-semibold text-slate-900">Phone:</span> {caseItem.userId?.phone || 'Unavailable'}</p>
-                      <p><span className="font-semibold text-slate-900">Accepted:</span> {new Date(caseItem.updatedAt).toLocaleDateString()}</p>
-                      <p><span className="font-semibold text-slate-900">Description:</span> {caseItem.description}</p>
+            return (
+              <CaseCard key={caseItem._id} caseItem={caseItem} showSummary detailPath={`/lawyer/case/${caseItem._id}`}>
+                <div className="listing-page__active-grid">
+                  <div className="listing-page__detail-card">
+                    <p><strong>Client:</strong> {caseItem.userId?.name}</p>
+                    <p><strong>Phone:</strong> {caseItem.userId?.phone || 'Unavailable'}</p>
+                    <p><strong>Accepted:</strong> {new Date(caseItem.updatedAt).toLocaleDateString()}</p>
+                    <p><strong>Description:</strong> {caseItem.description}</p>
+                  </div>
+                  <div className="listing-page__detail-card listing-page__detail-card--form">
+                    <div className="listing-page__field">
+                      <label>Update Status</label>
+                      <select value={selectedStatus} onChange={(event) => setUpdates((current) => ({ ...current, [caseItem._id]: { ...current[caseItem._id], status: event.target.value } }))}>
+                        <option value="in-progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                      </select>
                     </div>
-                    <div className="space-y-4 rounded-2xl bg-slate-50 p-5">
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-700">Update Status</label>
-                        <select
-                          value={selectedStatus}
-                          onChange={(event) => setUpdates((current) => ({ ...current, [caseItem._id]: { ...current[caseItem._id], status: event.target.value } }))}
-                          className="w-full rounded-2xl border-slate-200"
-                        >
-                          <option value="in-progress">In Progress</option>
-                          <option value="resolved">Resolved</option>
+                    {selectedStatus === 'resolved' ? (
+                      <div className="listing-page__field">
+                        <label>Outcome</label>
+                        <select value={currentUpdate.outcome || ''} onChange={(event) => setUpdates((current) => ({ ...current, [caseItem._id]: { ...current[caseItem._id], outcome: event.target.value } }))}>
+                          <option value="">Select outcome</option>
+                          <option value="won">Won</option>
+                          <option value="lost">Lost</option>
+                          <option value="settled">Settled</option>
                         </select>
                       </div>
-                      {selectedStatus === 'resolved' ? (
-                        <div>
-                          <label className="mb-2 block text-sm font-medium text-slate-700">Outcome</label>
-                          <select
-                            value={currentUpdate.outcome || ''}
-                            onChange={(event) => setUpdates((current) => ({ ...current, [caseItem._id]: { ...current[caseItem._id], outcome: event.target.value } }))}
-                            className="w-full rounded-2xl border-slate-200"
-                          >
-                            <option value="">Select outcome</option>
-                            <option value="won">Won</option>
-                            <option value="lost">Lost</option>
-                            <option value="settled">Settled</option>
-                          </select>
-                        </div>
-                      ) : null}
-                      <button type="button" onClick={() => handleUpdate(caseItem._id)} className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white hover:bg-teal-700">
-                        Submit Update
-                      </button>
-                    </div>
+                    ) : null}
+                    <button type="button" onClick={() => handleUpdate(caseItem._id)} className="listing-page__primary-button">Submit Update</button>
                   </div>
-                </CaseCard>
-              );
-            })
-          )}
+                </div>
+              </CaseCard>
+            );
+          }) : null}
         </section>
       </main>
     </div>

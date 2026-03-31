@@ -1,0 +1,347 @@
+.submit-case {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.submit-case__main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.submit-case__hero,
+.submit-case__panel,
+.submit-case__card,
+.submit-case__loading-card,
+.submit-case__public-note {
+  border-radius: 2rem;
+  box-shadow: 0 18px 36px -24px rgba(148, 163, 184, 0.55);
+}
+
+.submit-case__hero {
+  padding: 2rem;
+  background: linear-gradient(135deg, #eff6ff, #ffffff 45%, #ecfeff);
+}
+
+.submit-case__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.submit-case__step {
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.submit-case__step--active {
+  background: #2563eb;
+  color: #fff;
+}
+
+.submit-case__step--done {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.submit-case__hero-title,
+.submit-case__section-title {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.submit-case__hero-title {
+  margin-top: 1.5rem;
+  font-size: clamp(2rem, 4vw, 2.7rem);
+}
+
+.submit-case__hero-copy,
+.submit-case__section-copy,
+.submit-case__card-copy,
+.submit-case__strength-copy,
+.submit-case__context-grid p,
+.submit-case__public-action,
+.submit-case__public-note {
+  line-height: 1.8;
+  color: #64748b;
+}
+
+.submit-case__hero-copy {
+  margin-top: 0.75rem;
+  max-width: 48rem;
+}
+
+.submit-case__panel,
+.submit-case__loading-card,
+.submit-case__card,
+.submit-case__public-note {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: #fff;
+}
+
+.submit-case__form-grid,
+.submit-case__guidance-grid,
+.submit-case__context-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.submit-case__form-grid {
+  margin-top: 1.5rem;
+}
+
+.submit-case__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.submit-case__field--full {
+  grid-column: 1 / -1;
+}
+
+.submit-case__field label,
+.submit-case__context-label,
+.submit-case__strength-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.submit-case__field input,
+.submit-case__field select,
+.submit-case__field textarea,
+.submit-case__file-input {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 1.25rem;
+  background: #fff;
+  color: #0f172a;
+}
+
+.submit-case__field textarea {
+  resize: vertical;
+}
+
+.submit-case__file-input {
+  background: #f8fafc;
+  border-style: dashed;
+}
+
+.submit-case__location-row,
+.submit-case__radio-row,
+.submit-case__actions,
+.submit-case__actions--split,
+.submit-case__strength-row,
+.submit-case__strength-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.submit-case__actions {
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.submit-case__actions--split {
+  justify-content: space-between;
+}
+
+.submit-case__primary-button,
+.submit-case__secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submit-case__primary-button {
+  background: #2563eb;
+  color: #fff;
+}
+
+.submit-case__primary-button:disabled,
+.submit-case__secondary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-case__primary-button--dark {
+  width: 100%;
+  background: linear-gradient(135deg, #0f766e, #0f172a);
+}
+
+.submit-case__secondary-button {
+  border: 1px solid #bfdbfe;
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.submit-case__status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.8rem 1rem;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.submit-case__helper {
+  font-size: 0.85rem;
+}
+
+.submit-case__helper--error {
+  color: #ef4444;
+}
+
+.submit-case__helper--success {
+  color: #059669;
+}
+
+.submit-case__results,
+.submit-case__stack {
+  margin-top: 2rem;
+}
+
+.submit-case__guidance-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.submit-case__card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.submit-case__card-copy {
+  margin-top: 1rem;
+  white-space: pre-line;
+}
+
+.submit-case__card--strength {
+  background: #fff;
+}
+
+.submit-case__strength-icon-wrap {
+  display: inline-flex;
+  padding: 0.8rem;
+  border-radius: 1rem;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.submit-case__strength-icon,
+.submit-case__inline-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.submit-case__inline-icon--top {
+  margin-top: 0.15rem;
+}
+
+.submit-case__disclaimer {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border: 1px solid #fde68a;
+  border-radius: 1.5rem;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.submit-case__disclaimer p {
+  display: flex;
+  gap: 0.75rem;
+  line-height: 1.8;
+}
+
+.submit-case__section-copy-block {
+  margin-top: 2rem;
+}
+
+.submit-case__context-grid {
+  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.submit-case__recommendation-action {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #f8fafc;
+  font-size: 0.92rem;
+}
+
+.submit-case__reason-list {
+  margin: 0.85rem 0;
+  padding-left: 1rem;
+  color: #475569;
+}
+
+.submit-case__reason-list li + li {
+  margin-top: 0.45rem;
+}
+
+.submit-case__public-action {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.submit-case__loading-card {
+  text-align: center;
+}
+
+.submit-case__loading-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto;
+  color: #2563eb;
+  animation: submit-case-spin 1s linear infinite;
+}
+
+@keyframes submit-case-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (min-width: 768px) {
+  .submit-case__form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .submit-case__main {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .submit-case__hero,
+  .submit-case__panel,
+  .submit-case__card,
+  .submit-case__loading-card,
+  .submit-case__public-note {
+    padding: 1.25rem;
+  }
+
+  .submit-case__actions--split {
+    flex-direction: column;
+  }
+
+  .submit-case__actions--split > * {
+    width: 100%;
+  }
+}

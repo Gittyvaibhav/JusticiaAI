@@ -417,3 +417,4 @@ router.post('/:id/rate-lawyer', authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+

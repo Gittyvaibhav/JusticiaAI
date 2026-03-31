@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import LawyerCard from '../components/LawyerCard';
 import PaymentCheckout from '../components/PaymentCheckout';
 import { CASE_TYPES, CASE_TYPE_LABELS, STRENGTH_STYLES, URGENCY_LEVELS } from '../constants';
+import './SubmitCase.css';
 
 const initialForm = {
   title: '',
@@ -18,9 +19,27 @@ const initialForm = {
 
 function AdviceCard({ title, children }) {
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-md shadow-slate-200/60">
-      <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-      <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">{children}</div>
+    <div className="submit-case__card submit-case__card--guidance">
+      <h3 className="submit-case__card-title">{title}</h3>
+      <div className="submit-case__card-copy">{children || 'Not available yet.'}</div>
+    </div>
+  );
+}
+
+function RecommendationAction({ lawyer, onHire }) {
+  return (
+    <div className="submit-case__recommendation-action">
+      {lawyer.recommendationSummary ? <p>{lawyer.recommendationSummary}</p> : null}
+      {lawyer.recommendationReasons?.length ? (
+        <ul className="submit-case__reason-list">
+          {lawyer.recommendationReasons.map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
+      ) : null}
+      <button type="button" onClick={onHire} className="submit-case__primary-button submit-case__primary-button--dark">
+        Hire And Pay
+      </button>
     </div>
   );
 }
@@ -34,6 +53,8 @@ export default function SubmitCase() {
   const [registeredLawyers, setRegisteredLawyers] = useState([]);
   const [publicLawyers, setPublicLawyers] = useState([]);
   const [discoveryMeta, setDiscoveryMeta] = useState(null);
+  const [verifiedSection, setVerifiedSection] = useState(null);
+  const [publicSection, setPublicSection] = useState(null);
   const [findingLawyers, setFindingLawyers] = useState(false);
   const [locationCoords, setLocationCoords] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -58,10 +79,7 @@ export default function SubmitCase() {
 
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setLocationCoords({
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-        });
+        setLocationCoords({ latitude: coords.latitude, longitude: coords.longitude });
         setFormData((current) => ({
           ...current,
           location: current.location || `Lat ${coords.latitude.toFixed(4)}, Lng ${coords.longitude.toFixed(4)}`,
@@ -121,7 +139,6 @@ export default function SubmitCase() {
 
     try {
       const query = new URLSearchParams();
-
       if (locationCoords?.latitude && locationCoords?.longitude) {
         query.set('latitude', locationCoords.latitude);
         query.set('longitude', locationCoords.longitude);
@@ -133,6 +150,8 @@ export default function SubmitCase() {
       setRegisteredLawyers(data.registeredLawyers || []);
       setPublicLawyers(data.publicLawyers || []);
       setDiscoveryMeta(data.meta || null);
+      setVerifiedSection(data.verifiedSection || null);
+      setPublicSection(data.publicSection || null);
 
       if (!data.registeredLawyers?.length && !data.publicLawyers?.length) {
         toast('No lawyer matches found yet.');
@@ -153,77 +172,64 @@ export default function SubmitCase() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="submit-case">
       <Navbar />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className="rounded-[32px] bg-[linear-gradient(135deg,#eff6ff,#ffffff_45%,#ecfeff)] p-8 shadow-lg shadow-slate-200/60">
-          <div className="flex flex-wrap items-center gap-3">
+      <main className="submit-case__main">
+        <section className="submit-case__hero">
+          <div className="submit-case__steps">
             {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                  step === item ? 'bg-blue-600 text-white' : step > item ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
-                }`}
-              >
+              <div key={item} className={`submit-case__step ${step === item ? 'submit-case__step--active' : step > item ? 'submit-case__step--done' : ''}`}>
                 Step {item}
               </div>
             ))}
           </div>
-          <h1 className="mt-6 text-3xl font-semibold text-slate-900">Submit a New Legal Case</h1>
+          <h1 className="submit-case__hero-title">Submit your case for AI legal guidance</h1>
+          <p className="submit-case__hero-copy">Get a clearer summary of what your issue means, what procedure likely comes next, what evidence to prepare, and which verified lawyers fit the matter best.</p>
         </section>
 
         {step === 1 ? (
-          <section className="mt-8 rounded-[32px] bg-white p-8 shadow-md shadow-slate-200/60">
-            <h2 className="text-2xl font-semibold text-slate-900">Step 1: Case Details</h2>
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">Case Title</label>
-                <input name="title" value={formData.title} onChange={handleChange} className="w-full rounded-2xl border-slate-200" required />
+          <section className="submit-case__panel">
+            <h2 className="submit-case__section-title">Step 1: Share your case details</h2>
+            <div className="submit-case__form-grid">
+              <div className="submit-case__field submit-case__field--full">
+                <label>Case Title</label>
+                <input name="title" value={formData.title} onChange={handleChange} required />
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Case Type</label>
-                <select name="caseType" value={formData.caseType} onChange={handleChange} className="w-full rounded-2xl border-slate-200">
-                  {CASE_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {CASE_TYPE_LABELS[type]}
-                    </option>
-                  ))}
+              <div className="submit-case__field">
+                <label>Case Type</label>
+                <select name="caseType" value={formData.caseType} onChange={handleChange}>
+                  {CASE_TYPES.map((type) => <option key={type} value={type}>{CASE_TYPE_LABELS[type]}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Location</label>
-                <input name="location" value={formData.location} onChange={handleChange} className="w-full rounded-2xl border-slate-200" required />
+              <div className="submit-case__field">
+                <label>Location</label>
+                <input name="location" value={formData.location} onChange={handleChange} required />
               </div>
-              <div className="sm:col-span-2 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={useCurrentLocation}
-                  disabled={locationLoading}
-                  className="inline-flex items-center gap-2 rounded-full border border-blue-200 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  <Crosshair className="h-4 w-4" />
+              <div className="submit-case__location-row submit-case__field--full">
+                <button type="button" onClick={useCurrentLocation} disabled={locationLoading} className="submit-case__secondary-button">
+                  <Crosshair className="submit-case__inline-icon" />
                   {locationLoading ? 'Detecting location...' : 'Use My Current Location'}
                 </button>
                 {locationCoords ? (
-                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
-                    <MapPinned className="h-4 w-4" />
-                    Precise coordinates captured for nearby public lawyer search
+                  <div className="submit-case__status-pill">
+                    <MapPinned className="submit-case__inline-icon" />
+                    Precise coordinates captured for nearby lawyer discovery
                   </div>
                 ) : null}
               </div>
-              <div className="sm:col-span-2">
-                <label className="mb-3 block text-sm font-medium text-slate-700">Urgency Level</label>
-                <div className="flex flex-wrap gap-3">
+              <div className="submit-case__field submit-case__field--full">
+                <label>Urgency Level</label>
+                <div className="submit-case__radio-row">
                   {URGENCY_LEVELS.map((value) => (
-                    <label key={value} className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium capitalize text-slate-700">
-                      <input type="radio" name="urgency" value={value} checked={formData.urgency === value} onChange={handleChange} className="border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <label key={value} className="submit-case__radio-option">
+                      <input type="radio" name="urgency" value={value} checked={formData.urgency === value} onChange={handleChange} />
                       {value}
                     </label>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="mt-8 flex justify-end">
+            <div className="submit-case__actions">
               <button
                 type="button"
                 onClick={() => {
@@ -233,7 +239,7 @@ export default function SubmitCase() {
                   }
                   setStep(2);
                 }}
-                className="rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+                className="submit-case__primary-button"
               >
                 Continue
               </button>
@@ -242,123 +248,132 @@ export default function SubmitCase() {
         ) : null}
 
         {step === 2 ? (
-          <section className="mt-8 rounded-[32px] bg-white p-8 shadow-md shadow-slate-200/60">
-            <h2 className="text-2xl font-semibold text-slate-900">Step 2: Describe Your Problem</h2>
-            <div className="mt-6 space-y-6">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Describe your problem in detail</label>
-                <textarea rows="10" name="description" value={formData.description} onChange={handleChange} className="w-full rounded-3xl border-slate-200" required />
-                <p className={`mt-2 text-sm ${formData.description.length < 100 ? 'text-red-500' : 'text-emerald-600'}`}>{formData.description.length}/100 minimum characters</p>
+          <section className="submit-case__panel">
+            <h2 className="submit-case__section-title">Step 2: Describe what happened</h2>
+            <div className="submit-case__stack">
+              <div className="submit-case__field">
+                <label>Describe your case in detail</label>
+                <textarea rows="10" name="description" value={formData.description} onChange={handleChange} required />
+                <p className={`submit-case__helper ${formData.description.length < 100 ? 'submit-case__helper--error' : 'submit-case__helper--success'}`}>
+                  {formData.description.length}/100 minimum characters
+                </p>
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Document Upload (optional)</label>
-                <input type="file" multiple accept=".pdf,image/*" onChange={handleFileChange} className="w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4" />
+              <div className="submit-case__field">
+                <label>Document Upload (optional)</label>
+                <input type="file" multiple accept=".pdf,image/*" onChange={handleFileChange} className="submit-case__file-input" />
               </div>
             </div>
-            <div className="mt-8 flex justify-between">
-              <button type="button" onClick={() => setStep(1)} className="rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                Back
-              </button>
-              <button type="button" onClick={submitCase} className="rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700">
-                Submit and Analyze
-              </button>
+            <div className="submit-case__actions submit-case__actions--split">
+              <button type="button" onClick={() => setStep(1)} className="submit-case__secondary-button">Back</button>
+              <button type="button" onClick={submitCase} className="submit-case__primary-button">Submit and Analyze</button>
             </div>
           </section>
         ) : null}
 
         {step === 3 ? (
-          <section className="mt-8 space-y-6">
+          <section className="submit-case__results">
             {submitting ? (
-              <div className="rounded-[32px] bg-white px-8 py-16 text-center shadow-md shadow-slate-200/60">
-                <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-600" />
-                <h2 className="mt-6 text-2xl font-semibold text-slate-900">AI is analyzing your case...</h2>
+              <div className="submit-case__loading-card">
+                <Loader2 className="submit-case__loading-icon" />
+                <h2>AI is analyzing your case and preparing next steps...</h2>
               </div>
             ) : (
               <>
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="submit-case__guidance-grid">
                   <AdviceCard title="Case Summary">{advice?.caseSummary}</AdviceCard>
                   <AdviceCard title="Relevant Laws and Sections">{advice?.relevantLaws}</AdviceCard>
                   <AdviceCard title="Immediate Next Steps">{advice?.nextSteps}</AdviceCard>
+                  <AdviceCard title="Procedural Checklist">{advice?.proceduralChecklist}</AdviceCard>
+                  <AdviceCard title="Documents and Evidence to Gather">{advice?.documentsNeeded}</AdviceCard>
+                  <AdviceCard title="Likely Forum or Authority">{advice?.likelyForum}</AdviceCard>
+                  <AdviceCard title="Expected Timeline">{advice?.expectedTimeline}</AdviceCard>
+                  <AdviceCard title="Key Risks or Weaknesses">{advice?.keyRisks}</AdviceCard>
                   <AdviceCard title="Lawyer Type Needed">{advice?.lawyerTypeNeeded}</AdviceCard>
+                  <AdviceCard title="How to Choose the Right Lawyer">{advice?.lawyerFitRationale}</AdviceCard>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-8 shadow-md shadow-slate-200/60">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="rounded-2xl bg-blue-100 p-3 text-blue-700">
-                      <Sparkles className="h-5 w-5" />
+                <div className="submit-case__card submit-case__card--strength">
+                  <div className="submit-case__strength-row">
+                    <div className="submit-case__strength-icon-wrap">
+                      <Sparkles className="submit-case__strength-icon" />
                     </div>
                     <div>
-                      <p className="text-sm uppercase tracking-[0.25em] text-slate-400">Case Strength</p>
-                      <div className="mt-2 flex items-center gap-3">
-                        <span className={`rounded-full px-4 py-2 text-sm font-semibold ${STRENGTH_STYLES[advice?.caseStrength] || 'bg-slate-100 text-slate-700'}`}>
+                      <p className="submit-case__strength-label">Case Strength</p>
+                      <div className="submit-case__strength-content">
+                        <span className={`submit-case__strength-pill ${STRENGTH_STYLES[advice?.caseStrength] || 'bg-slate-100 text-slate-700'}`}>
                           {advice?.caseStrength}
                         </span>
-                        <span className="text-sm text-slate-600">{advice?.caseStrengthExplanation}</span>
+                        <span className="submit-case__strength-copy">{advice?.caseStrengthExplanation}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-[32px] border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
-                  <p className="flex items-start gap-3">
-                    <ShieldAlert className="mt-0.5 h-5 w-5 flex-none" />
-                    This is AI-generated legal information for guidance only. Consult a qualified lawyer before taking any legal action.
+                <div className="submit-case__disclaimer">
+                  <p>
+                    <ShieldAlert className="submit-case__inline-icon submit-case__inline-icon--top" />
+                    This is AI-generated legal information to help you understand likely procedure, evidence needs, and lawyer fit. It is not a substitute for professional legal advice or a guaranteed legal outcome.
                   </p>
                 </div>
 
-                <button type="button" onClick={findMatchingLawyers} disabled={findingLawyers} className="rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70">
-                  {findingLawyers ? 'Finding Lawyers...' : 'Find Matching Lawyers Nearby'}
+                <button type="button" onClick={findMatchingLawyers} disabled={findingLawyers} className="submit-case__primary-button">
+                  {findingLawyers ? 'Finding Lawyers...' : 'Find Recommended Lawyers'}
                 </button>
 
-                {discoveryMeta?.publicSearchMessage ? (
-                  <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm shadow-slate-200/50">
-                    {discoveryMeta.publicSearchMessage}
+                {discoveryMeta?.recommendationContext ? (
+                  <div className="submit-case__card submit-case__card--context">
+                    <h2 className="submit-case__section-title">How recommendations are being ranked</h2>
+                    <div className="submit-case__context-grid">
+                      <div>
+                        <p className="submit-case__context-label">Lawyer Type</p>
+                        <p>{discoveryMeta.recommendationContext.lawyerTypeNeeded || 'Not available yet.'}</p>
+                      </div>
+                      <div>
+                        <p className="submit-case__context-label">Likely Forum</p>
+                        <p>{discoveryMeta.recommendationContext.forum || 'Not available yet.'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {verifiedSection ? (
+                  <div className="submit-case__section-copy-block">
+                    <h2 className="submit-case__section-title">{verifiedSection.title}</h2>
+                    <p className="submit-case__section-copy">{verifiedSection.description}</p>
                   </div>
                 ) : null}
 
                 {registeredLawyers.length > 0 ? (
-                  <div className="space-y-5">
-                    <div>
-                      <h2 className="text-2xl font-semibold text-slate-900">Verified Platform Lawyers</h2>
-                      <p className="text-sm text-slate-500">Registered lawyers inside your AI Lawyer platform, ranked by platform performance.</p>
-                    </div>
+                  <div className="submit-case__stack submit-case__stack--large">
                     {registeredLawyers.map((lawyer) => (
                       <LawyerCard
                         key={lawyer._id}
                         lawyer={lawyer}
-                        action={(
-                          <div className="space-y-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-                            <p>Start checkout to assign this lawyer to your case.</p>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedLawyer(lawyer)}
-                              className="w-full rounded-full bg-[linear-gradient(135deg,#0f766e,#0f172a)] px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
-                            >
-                              Hire And Pay
-                            </button>
-                          </div>
-                        )}
+                        action={<RecommendationAction lawyer={lawyer} onHire={() => setSelectedLawyer(lawyer)} />}
                       />
                     ))}
                   </div>
                 ) : null}
 
+                {discoveryMeta?.publicSearchMessage ? (
+                  <div className="submit-case__public-note">{discoveryMeta.publicSearchMessage}</div>
+                ) : null}
+
+                {publicSection ? (
+                  <div className="submit-case__section-copy-block">
+                    <h2 className="submit-case__section-title">{publicSection.title}</h2>
+                    <p className="submit-case__section-copy">{publicSection.description}</p>
+                  </div>
+                ) : null}
+
                 {publicLawyers.length > 0 ? (
-                  <div className="space-y-5">
-                    <div>
-                      <h2 className="text-2xl font-semibold text-slate-900">Nearby Public Lawyer Listings</h2>
-                      <p className="text-sm text-slate-500">These results come from Google Maps near your typed or detected location and are not verified by your platform.</p>
-                    </div>
+                  <div className="submit-case__stack submit-case__stack--large">
                     {publicLawyers.map((lawyer) => (
                       <LawyerCard
                         key={lawyer.id}
                         lawyer={lawyer}
                         showContact
-                        action={
-                          <div className="rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                            Review public details carefully before contacting. Platform verification does not apply here.
-                          </div>
-                        }
+                        action={<div className="submit-case__public-action">Review public details carefully before contacting. Platform verification and in-app support do not apply here.</div>}
                       />
                     ))}
                   </div>
