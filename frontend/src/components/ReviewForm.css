@@ -1,0 +1,55 @@
+  .review-form {
+    @apply max-w-md rounded-lg bg-white p-6;
+  }
+
+  .review-form__heading {
+    @apply mb-4 text-xl font-bold;
+  }
+
+  .review-form__body {
+    @apply space-y-4;
+  }
+
+  .review-form__label {
+    @apply mb-2 block font-semibold;
+  }
+
+  .review-form__stars {
+    @apply flex gap-2;
+  }
+
+  .review-form__star-button {
+    @apply transition-transform hover:scale-110 focus:outline-none;
+  }
+
+  .review-form__star--filled {
+    @apply fill-yellow-400 text-yellow-400;
+  }
+
+  .review-form__star--empty {
+    @apply text-gray-300;
+  }
+
+  .review-form__input {
+    @apply w-full rounded border px-3 py-2;
+  }
+
+  .review-form__input--textarea {
+    @apply resize-y;
+  }
+
+  .review-form__actions {
+    @apply flex gap-3;
+  }
+
+  .review-form__button {
+    @apply flex-1 rounded py-2 font-semibold transition-colors;
+  }
+
+  .review-form__button--secondary {
+    @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+  }
+
+  .review-form__button--primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400;
+  }

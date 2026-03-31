@@ -1,0 +1,48 @@
+.lawyer-filter {
+  @apply fixed inset-0 z-50 flex items-center justify-center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+  .lawyer-filter__panel {
+    @apply max-h-screen w-full max-w-md overflow-y-auto rounded-lg bg-white p-6;
+  }
+
+  .lawyer-filter__header {
+    @apply mb-4 flex items-center justify-between;
+  }
+
+  .lawyer-filter__title {
+    @apply flex items-center gap-2 text-xl font-bold;
+  }
+
+  .lawyer-filter__close {
+    @apply text-gray-500 hover:text-gray-700;
+  }
+
+  .lawyer-filter__fields {
+    @apply space-y-4;
+  }
+
+  .lawyer-filter__label {
+    @apply mb-2 block text-sm font-semibold;
+  }
+
+  .lawyer-filter__input {
+    @apply w-full rounded border px-3 py-2 text-sm;
+  }
+
+  .lawyer-filter__checkbox-row {
+    @apply flex items-center;
+  }
+
+  .lawyer-filter__checkbox {
+    @apply h-4 w-4 rounded;
+  }
+
+  .lawyer-filter__checkbox-label {
+    @apply ml-2 cursor-pointer text-sm font-semibold;
+  }
+
+  .lawyer-filter__reset {
+    @apply mt-6 w-full rounded bg-gray-200 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-300;
+  }

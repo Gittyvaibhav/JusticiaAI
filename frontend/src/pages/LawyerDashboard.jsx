@@ -7,7 +7,7 @@ import Navbar from '../components/Navbar';
 import { CASE_TYPES, CASE_TYPE_LABELS } from '../constants';
 import { useAuth } from '../context/AuthContext';
 
-function StatCard({ label, value, icon: Icon, tone }) {
+function StatCard({ label, value, icon: Icon, tone, iconHint }) {
   return (
     <div className="rounded-3xl bg-white p-6 shadow-md shadow-slate-200/60">
       <div className="flex items-center justify-between">
@@ -15,7 +15,7 @@ function StatCard({ label, value, icon: Icon, tone }) {
           <p className="text-sm text-slate-500">{label}</p>
           <p className="mt-2 text-3xl font-semibold text-slate-900">{value}</p>
         </div>
-        <div className={`rounded-2xl p-3 ${tone}`}>
+        <div className={`rounded-2xl p-3 ${tone}`} title={iconHint} aria-label={iconHint}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -81,11 +81,11 @@ export default function LawyerDashboard() {
         </section>
 
         <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-          <StatCard label="Active Cases" value={lawyer?.activeCases?.length || 0} icon={Briefcase} tone="bg-teal-100 text-teal-700" />
-          <StatCard label="Total Cases Handled" value={lawyer?.casesTotal || 0} icon={Scale} tone="bg-slate-100 text-slate-700" />
-          <StatCard label="Cases Won" value={lawyer?.casesWon || 0} icon={Medal} tone="bg-emerald-100 text-emerald-700" />
-          <StatCard label="Win Rate" value={`${Number(lawyer?.winRate || 0).toFixed(1)}%`} icon={TrendingUp} tone="bg-blue-100 text-blue-700" />
-          <StatCard label="Average Rating" value={Number(lawyer?.rating || 0).toFixed(1)} icon={Star} tone="bg-amber-100 text-amber-700" />
+          <StatCard label="Active Cases" value={lawyer?.activeCases?.length || 0} icon={Briefcase} tone="bg-teal-100 text-teal-700" iconHint="Briefcase icon: matters currently assigned to you" />
+          <StatCard label="Total Cases Handled" value={lawyer?.casesTotal || 0} icon={Scale} tone="bg-slate-100 text-slate-700" iconHint="Scale icon: total cases you have worked on" />
+          <StatCard label="Cases Won" value={lawyer?.casesWon || 0} icon={Medal} tone="bg-emerald-100 text-emerald-700" iconHint="Medal icon: matters you completed with a winning outcome" />
+          <StatCard label="Win Rate" value={`${Number(lawyer?.winRate || 0).toFixed(1)}%`} icon={TrendingUp} tone="bg-blue-100 text-blue-700" iconHint="Trending icon: your success percentage across handled cases" />
+          <StatCard label="Average Rating" value={Number(lawyer?.rating || 0).toFixed(1)} icon={Star} tone="bg-amber-100 text-amber-700" iconHint="Star icon: average client rating for your work" />
         </section>
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.95fr]">

@@ -60,6 +60,7 @@ An AI-powered legal platform that connects budget-conscious individuals with ver
 - **File Storage**: Cloudinary
 - **File Upload**: Multer
 - **Email**: Nodemailer
+- **Payments**: Razorpay Orders + Signature Verification
 - **Development**: Nodemon
 
 ### Frontend
@@ -131,7 +132,9 @@ JusticiaAI/
 - `POST /api/reviews/:reviewId/helpful` - Mark helpful
 
 ### Payments & Milestones
-- `POST /api/payments/create` - Create payment with escrow
+- `GET /api/payments/config` - Fetch Razorpay checkout configuration
+- `POST /api/payments/create-order` - Create a Razorpay order for a case
+- `POST /api/payments/verify` - Verify Razorpay signature and assign the case
 - `GET /api/payments/:paymentId` - Get payment details
 - `POST /api/payments/:paymentId/release` - Release escrow payment
 - `POST /api/payments/:paymentId/milestone/:index/complete` - Complete milestone
@@ -214,6 +217,16 @@ JusticiaAI/
 - Google Generative AI API key
 - Cloudinary account
 - SMTP credentials for email notifications
+- Razorpay account with API keys
+
+### Payment Environment Variables
+
+Add these to `backend/.env`:
+
+```env
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+```
 
 
 ## Usage 💡

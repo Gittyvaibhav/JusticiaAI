@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { FileText, Download } from 'lucide-react';
 import api from '../api';
 import toast from 'react-hot-toast';
+import './DocumentGenerator.css';
 
 export default function DocumentGenerator() {
   const [documentType, setDocumentType] = useState('petition');
   const [loading, setLoading] = useState(false);
   const [generatedDoc, setGeneratedDoc] = useState(null);
   const [templates, setTemplates] = useState([]);
-
   const [formData, setFormData] = useState({
     caseDetails: '',
     parties: '',
@@ -16,20 +16,20 @@ export default function DocumentGenerator() {
   });
 
   React.useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const response = await api.get('/documents/templates');
+        setTemplates(response.data);
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+      }
+    };
+
     fetchTemplates();
   }, []);
 
-  const fetchTemplates = async () => {
-    try {
-      const response = await api.get('/documents/templates');
-      setTemplates(response.data);
-    } catch (error) {
-      console.error('Error fetching templates:', error);
-    }
-  };
-
-  const handleGenerate = async (e) => {
-    e.preventDefault();
+  const handleGenerate = async (event) => {
+    event.preventDefault();
     setLoading(true);
 
     try {
@@ -50,7 +50,9 @@ export default function DocumentGenerator() {
   };
 
   const downloadDocument = () => {
-    if (!generatedDoc) return;
+    if (!generatedDoc) {
+      return;
+    }
 
     const element = document.createElement('a');
     const file = new Blob([generatedDoc.content], { type: 'text/plain' });
@@ -62,21 +64,20 @@ export default function DocumentGenerator() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+    <div className="document-generator">
+      <h2 className="document-generator__heading">
         <FileText size={28} />
         AI Legal Document Generator
       </h2>
 
       {!generatedDoc ? (
-        <form onSubmit={handleGenerate} className="space-y-4">
-          {/* Document Type */}
+        <form onSubmit={handleGenerate} className="document-generator__form">
           <div>
-            <label className="block font-semibold mb-2">Select Document Type</label>
+            <label className="document-generator__label">Select Document Type</label>
             <select
               value={documentType}
-              onChange={(e) => setDocumentType(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              onChange={(event) => setDocumentType(event.target.value)}
+              className="document-generator__input"
             >
               {templates.map((template) => (
                 <option key={template.id} value={template.id}>
@@ -86,76 +87,59 @@ export default function DocumentGenerator() {
             </select>
           </div>
 
-          {/* Case Details */}
           <div>
-            <label className="block font-semibold mb-2">Case Details</label>
+            <label className="document-generator__label">Case Details</label>
             <textarea
               value={formData.caseDetails}
-              onChange={(e) => setFormData({ ...formData, caseDetails: e.target.value })}
+              onChange={(event) => setFormData({ ...formData, caseDetails: event.target.value })}
               placeholder="Describe the case details, facts, and circumstances..."
               rows={4}
-              className="w-full border rounded px-3 py-2"
+              className="document-generator__input document-generator__input--textarea"
               required
             />
           </div>
 
-          {/* Parties */}
           <div>
-            <label className="block font-semibold mb-2">Parties Involved</label>
+            <label className="document-generator__label">Parties Involved</label>
             <textarea
               value={formData.parties}
-              onChange={(e) => setFormData({ ...formData, parties: e.target.value })}
+              onChange={(event) => setFormData({ ...formData, parties: event.target.value })}
               placeholder="List all parties involved (petitioner, respondent, witnesses, etc.)"
               rows={3}
-              className="w-full border rounded px-3 py-2"
+              className="document-generator__input document-generator__input--textarea"
               required
             />
           </div>
 
-          {/* Additional Content */}
           <div>
-            <label className="block font-semibold mb-2">Additional Information</label>
+            <label className="document-generator__label">Additional Information</label>
             <textarea
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={(event) => setFormData({ ...formData, content: event.target.value })}
               placeholder="Any additional details, amounts, dates, etc."
               rows={3}
-              className="w-full border rounded px-3 py-2"
+              className="document-generator__input document-generator__input--textarea"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 rounded font-semibold transition-colors"
-          >
+          <button type="submit" disabled={loading} className="document-generator__submit">
             {loading ? 'Generating Document...' : 'Generate Document'}
           </button>
         </form>
       ) : (
-        <div className="space-y-4">
-          {/* Generated Document Preview */}
+        <div className="document-generator__preview">
           <div>
-            <label className="block font-semibold mb-2">Generated Document</label>
-            <div className="border rounded p-4 bg-gray-50 max-h-96 overflow-y-auto">
-              <pre className="text-sm whitespace-pre-wrap font-sans text-gray-800">
-                {generatedDoc.content}
-              </pre>
+            <label className="document-generator__label">Generated Document</label>
+            <div className="document-generator__preview-box">
+              <pre className="document-generator__preview-text">{generatedDoc.content}</pre>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <button
-              onClick={() => setGeneratedDoc(null)}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded font-semibold transition-colors"
-            >
+          <div className="document-generator__actions">
+            <button type="button" onClick={() => setGeneratedDoc(null)} className="document-generator__button document-generator__button--secondary">
               Generate New
             </button>
-            <button
-              onClick={downloadDocument}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded font-semibold transition-colors flex items-center justify-center gap-2"
-            >
+            <button type="button" onClick={downloadDocument} className="document-generator__button document-generator__button--primary">
               <Download size={18} />
               Download Document
             </button>

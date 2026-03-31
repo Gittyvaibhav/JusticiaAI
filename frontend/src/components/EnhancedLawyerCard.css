@@ -1,0 +1,153 @@
+  .enhanced-lawyer-card {
+    @apply rounded-lg bg-white p-4 shadow-md transition-shadow hover:shadow-lg;
+  }
+
+  .enhanced-lawyer-card__match {
+    @apply mb-3 flex items-center justify-between;
+  }
+
+  .enhanced-lawyer-card__match-label {
+    @apply text-sm font-semibold text-gray-600;
+  }
+
+  .enhanced-lawyer-card__match-row {
+    @apply flex items-center gap-2;
+  }
+
+  .enhanced-lawyer-card__match-track {
+    @apply h-2 w-24 rounded-full bg-gray-200;
+  }
+
+  .enhanced-lawyer-card__match-fill {
+    @apply h-2 rounded-full transition-all;
+  }
+
+  .enhanced-lawyer-card__match-fill--high {
+    @apply bg-green-500;
+  }
+
+  .enhanced-lawyer-card__match-fill--mid {
+    @apply bg-yellow-500;
+  }
+
+  .enhanced-lawyer-card__match-fill--low {
+    @apply bg-red-500;
+  }
+
+  .enhanced-lawyer-card__match-value {
+    @apply text-sm font-bold;
+  }
+
+  .enhanced-lawyer-card__title {
+    @apply mb-2 text-lg font-bold;
+  }
+
+  .enhanced-lawyer-card__loading {
+    @apply mb-3 space-y-2;
+  }
+
+  .enhanced-lawyer-card__loading-bar {
+    @apply h-4 w-3/4 rounded bg-gray-200;
+  }
+
+  .enhanced-lawyer-card__rating {
+    @apply mb-2 flex items-center gap-2;
+  }
+
+  .enhanced-lawyer-card__stars {
+    @apply flex items-center gap-1;
+  }
+
+  .enhanced-lawyer-card__star--filled {
+    @apply fill-yellow-400 text-yellow-400;
+  }
+
+  .enhanced-lawyer-card__star--empty {
+    @apply text-gray-300;
+  }
+
+  .enhanced-lawyer-card__rating-value {
+    @apply text-sm font-semibold;
+  }
+
+  .enhanced-lawyer-card__rating-copy,
+  .enhanced-lawyer-card__empty-copy {
+    @apply text-sm text-gray-500;
+  }
+
+  .enhanced-lawyer-card__stats {
+    @apply mb-3 grid grid-cols-2 gap-2 text-sm;
+  }
+
+  .enhanced-lawyer-card__stat-box {
+    @apply rounded bg-gray-50 p-2;
+  }
+
+  .enhanced-lawyer-card__stat-label {
+    @apply text-xs text-gray-600;
+  }
+
+  .enhanced-lawyer-card__stat-value {
+    @apply font-bold;
+  }
+
+  .enhanced-lawyer-card__stat-value--green {
+    @apply text-green-600;
+  }
+
+  .enhanced-lawyer-card__stat-value--blue {
+    @apply text-blue-600;
+  }
+
+  .enhanced-lawyer-card__section {
+    @apply mb-3;
+  }
+
+  .enhanced-lawyer-card__section-label {
+    @apply mb-1 text-xs text-gray-600;
+  }
+
+  .enhanced-lawyer-card__chips,
+  .enhanced-lawyer-card__badges {
+    @apply flex flex-wrap gap-1;
+  }
+
+  .enhanced-lawyer-card__chip {
+    @apply rounded bg-gray-100 px-2 py-1 text-xs capitalize;
+  }
+
+  .enhanced-lawyer-card__badge {
+    @apply flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-xs text-blue-700;
+  }
+
+  .enhanced-lawyer-card__badge-text {
+    @apply capitalize;
+  }
+
+  .enhanced-lawyer-card__footer {
+    @apply border-t pt-3;
+  }
+
+  .enhanced-lawyer-card__pricing {
+    @apply mb-2 text-sm;
+  }
+
+  .enhanced-lawyer-card__pricing-line {
+    @apply text-gray-700;
+  }
+
+  .enhanced-lawyer-card__pricing-strong {
+    @apply font-semibold;
+  }
+
+  .enhanced-lawyer-card__empty-copy--spaced {
+    @apply mb-2;
+  }
+
+  .enhanced-lawyer-card__location {
+    @apply mb-3 flex items-center gap-1 text-xs text-gray-600;
+  }
+
+  .enhanced-lawyer-card__button {
+    @apply w-full rounded bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700;
+  }

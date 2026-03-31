@@ -4,6 +4,7 @@ import { Crosshair, Loader2, MapPinned, ShieldAlert, Sparkles } from 'lucide-rea
 import api from '../api';
 import Navbar from '../components/Navbar';
 import LawyerCard from '../components/LawyerCard';
+import PaymentCheckout from '../components/PaymentCheckout';
 import { CASE_TYPES, CASE_TYPE_LABELS, STRENGTH_STYLES, URGENCY_LEVELS } from '../constants';
 
 const initialForm = {
@@ -36,6 +37,7 @@ export default function SubmitCase() {
   const [findingLawyers, setFindingLawyers] = useState(false);
   const [locationCoords, setLocationCoords] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [selectedLawyer, setSelectedLawyer] = useState(null);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -140,6 +142,14 @@ export default function SubmitCase() {
     } finally {
       setFindingLawyers(false);
     }
+  };
+
+  const handlePaymentSuccess = ({ case: assignedCase }) => {
+    if (assignedCase) {
+      setSubmittedCase(assignedCase);
+    }
+
+    setSelectedLawyer(null);
   };
 
   return (
@@ -316,7 +326,18 @@ export default function SubmitCase() {
                       <LawyerCard
                         key={lawyer._id}
                         lawyer={lawyer}
-                        action={<div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Contact details become visible after a lawyer accepts your case.</div>}
+                        action={(
+                          <div className="space-y-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+                            <p>Start checkout to assign this lawyer to your case.</p>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedLawyer(lawyer)}
+                              className="w-full rounded-full bg-[linear-gradient(135deg,#0f766e,#0f172a)] px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
+                            >
+                              Hire And Pay
+                            </button>
+                          </div>
+                        )}
                       />
                     ))}
                   </div>
@@ -347,6 +368,17 @@ export default function SubmitCase() {
           </section>
         ) : null}
       </main>
+
+      {selectedLawyer && submittedCase?._id ? (
+        <PaymentCheckout
+          caseId={submittedCase._id}
+          lawyerId={selectedLawyer._id}
+          lawyerName={selectedLawyer.name}
+          lawyerFee={selectedLawyer.averageFixedFee || 0}
+          onSuccess={handlePaymentSuccess}
+          onClose={() => setSelectedLawyer(null)}
+        />
+      ) : null}
     </div>
   );
 }

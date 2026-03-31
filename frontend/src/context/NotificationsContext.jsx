@@ -90,6 +90,18 @@ function buildNotification(role, type, payload) {
     };
   }
 
+  if (type === 'chat:notification' && payload.senderRole !== role) {
+    return {
+      id: `${type}:${payload.caseId}:${payload.createdAt || createdAt}:${payload.senderId}`,
+      type,
+      title: 'New message received',
+      message: `${payload.senderName} sent a new message about ${payload.title}.`,
+      href: `/${role}/messages?caseId=${payload.caseId}`,
+      createdAt: payload.createdAt || createdAt,
+      read: false,
+    };
+  }
+
   return null;
 }
 
@@ -136,13 +148,16 @@ export function NotificationsProvider({ children }) {
 
     const handleCaseAvailable = (payload) => pushNotification('case:available', payload);
     const handleCaseUpdated = (payload) => pushNotification('case:updated', payload);
+    const handleChatNotification = (payload) => pushNotification('chat:notification', payload);
 
     socket.on('case:available', handleCaseAvailable);
     socket.on('case:updated', handleCaseUpdated);
+    socket.on('chat:notification', handleChatNotification);
 
     return () => {
       socket.off('case:available', handleCaseAvailable);
       socket.off('case:updated', handleCaseUpdated);
+      socket.off('chat:notification', handleChatNotification);
     };
   }, [isAuthenticated, role]);
 

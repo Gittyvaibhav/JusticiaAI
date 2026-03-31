@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import api from '../api';
 import toast from 'react-hot-toast';
+import './ReviewForm.css';
 
 export default function ReviewForm({ caseId, lawyerId, onSubmit, onClose }) {
   const [formData, setFormData] = useState({
@@ -19,8 +20,8 @@ export default function ReviewForm({ caseId, lawyerId, onSubmit, onClose }) {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
 
     try {
@@ -41,37 +42,35 @@ export default function ReviewForm({ caseId, lawyerId, onSubmit, onClose }) {
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 max-w-md">
-      <h2 className="text-xl font-bold mb-4">Rate Your Lawyer</h2>
+    <div className="review-form">
+      <h2 className="review-form__heading">Rate Your Lawyer</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Rating */}
+      <form onSubmit={handleSubmit} className="review-form__body">
         <div>
-          <label className="block font-semibold mb-2">Rating</label>
-          <div className="flex gap-2">
+          <label className="review-form__label">Rating</label>
+          <div className="review-form__stars">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 type="button"
                 onClick={() => handleChange('rating', star)}
-                className="focus:outline-none transition-transform hover:scale-110"
+                className="review-form__star-button"
               >
                 <Star
                   size={32}
-                  className={star <= formData.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+                  className={star <= formData.rating ? 'review-form__star review-form__star--filled' : 'review-form__star review-form__star--empty'}
                 />
               </button>
             ))}
           </div>
         </div>
 
-        {/* Case Outcome */}
         <div>
-          <label className="block font-semibold mb-2">Case Outcome</label>
+          <label className="review-form__label">Case Outcome</label>
           <select
             value={formData.caseOutcome}
-            onChange={(e) => handleChange('caseOutcome', e.target.value)}
-            className="w-full border rounded px-3 py-2"
+            onChange={(event) => handleChange('caseOutcome', event.target.value)}
+            className="review-form__input"
           >
             <option value="won">Won</option>
             <option value="lost">Lost</option>
@@ -79,46 +78,35 @@ export default function ReviewForm({ caseId, lawyerId, onSubmit, onClose }) {
           </select>
         </div>
 
-        {/* Title */}
         <div>
-          <label className="block font-semibold mb-2">Review Title</label>
+          <label className="review-form__label">Review Title</label>
           <input
             type="text"
             value={formData.title}
-            onChange={(e) => handleChange('title', e.target.value)}
+            onChange={(event) => handleChange('title', event.target.value)}
             placeholder="e.g., Excellent service and great results"
-            className="w-full border rounded px-3 py-2"
+            className="review-form__input"
             required
           />
         </div>
 
-        {/* Comment */}
         <div>
-          <label className="block font-semibold mb-2">Your Review</label>
+          <label className="review-form__label">Your Review</label>
           <textarea
             value={formData.comment}
-            onChange={(e) => handleChange('comment', e.target.value)}
+            onChange={(event) => handleChange('comment', event.target.value)}
             placeholder="Share your experience with this lawyer..."
             rows={4}
-            className="w-full border rounded px-3 py-2"
+            className="review-form__input review-form__input--textarea"
             required
           />
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded font-semibold transition-colors"
-          >
+        <div className="review-form__actions">
+          <button type="button" onClick={onClose} className="review-form__button review-form__button--secondary">
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 rounded font-semibold transition-colors"
-          >
+          <button type="submit" disabled={loading} className="review-form__button review-form__button--primary">
             {loading ? 'Submitting...' : 'Submit Review'}
           </button>
         </div>

@@ -9,6 +9,7 @@ import CaseDetail from './pages/CaseDetail';
 import LawyerDashboard from './pages/LawyerDashboard';
 import AvailableCases from './pages/AvailableCases';
 import ActiveCases from './pages/ActiveCases';
+import Messages from './pages/Messages';
 
 function ProtectedRoute({ role }) {
   const { isAuthenticated, user } = useAuth();
@@ -36,6 +37,7 @@ export default function App() {
         <Route element={<ProtectedRoute role="user" />}>
           <Route path="/user/dashboard" element={<UserDashboard />} />
           <Route path="/user/submit-case" element={<SubmitCase />} />
+          <Route path="/user/messages" element={<Messages />} />
           <Route path="/user/case/:id" element={<CaseDetail />} />
         </Route>
 
@@ -43,6 +45,7 @@ export default function App() {
           <Route path="/lawyer/dashboard" element={<LawyerDashboard />} />
           <Route path="/lawyer/available-cases" element={<AvailableCases />} />
           <Route path="/lawyer/active-cases" element={<ActiveCases />} />
+          <Route path="/lawyer/messages" element={<Messages />} />
           <Route path="/lawyer/case/:id" element={<CaseDetail />} />
         </Route>
       </Routes>

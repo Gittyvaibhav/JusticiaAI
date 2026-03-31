@@ -6,6 +6,7 @@ import api from '../api';
 import Navbar from '../components/Navbar';
 import LawyerCard from '../components/LawyerCard';
 import CaseChatPanel from '../components/CaseChatPanel';
+import PaymentCheckout from '../components/PaymentCheckout';
 import { CASE_TYPE_LABELS, STATUS_STYLES, STRENGTH_STYLES } from '../constants';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,6 +30,9 @@ export default function CaseDetail() {
   const [statusForm, setStatusForm] = useState({ status: 'assigned', outcome: '' });
   const [savingStatus, setSavingStatus] = useState(false);
   const [closingCase, setClosingCase] = useState(false);
+  const [recommendedLawyers, setRecommendedLawyers] = useState([]);
+  const [loadingLawyers, setLoadingLawyers] = useState(false);
+  const [selectedLawyer, setSelectedLawyer] = useState(null);
 
   const loadCase = async () => {
     try {
@@ -108,6 +112,34 @@ export default function CaseDetail() {
     }
   };
 
+  const loadRecommendedLawyers = async () => {
+    setLoadingLawyers(true);
+
+    try {
+      const { data } = await api.get(`/lawyers/discover/${id}`);
+      setRecommendedLawyers(data.registeredLawyers || []);
+
+      if (!data.registeredLawyers?.length) {
+        toast('No verified lawyers are available for this case yet.');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to load matching lawyers');
+    } finally {
+      setLoadingLawyers(false);
+    }
+  };
+
+  const handlePaymentSuccess = async ({ case: assignedCase }) => {
+    setSelectedLawyer(null);
+
+    if (assignedCase) {
+      setCaseData(assignedCase);
+      return;
+    }
+
+    await loadCase();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50">
@@ -124,6 +156,7 @@ export default function CaseDetail() {
   const canRate = caseData.status === 'resolved' && caseData.assignedLawyer && !caseData.lawyerRating;
   const counterpart = user?.role === 'lawyer' ? caseData.userId : caseData.assignedLawyer;
   const chatEnabled = Boolean(caseData.assignedLawyer);
+  const canHireLawyer = user?.role === 'user' && caseData.status === 'open' && !caseData.assignedLawyer;
   const canCloseCase = user?.role === 'user'
     ? ['open', 'resolved'].includes(caseData.status)
     : user?.role === 'lawyer' && caseData.assignedLawyer && ['resolved'].includes(caseData.status);
@@ -206,6 +239,52 @@ export default function CaseDetail() {
             onCaseUpdated={() => loadCase()}
           />
         </section>
+
+        {canHireLawyer ? (
+          <section className="mt-8 overflow-hidden rounded-[36px] border border-white/80 bg-white/90 shadow-xl shadow-slate-200/70 backdrop-blur">
+            <div className="flex flex-wrap items-start justify-between gap-4 bg-[linear-gradient(135deg,#ecfeff,#ffffff_45%,#eff6ff)] px-8 py-6">
+              <div>
+                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">
+                  <Sparkles className="h-4 w-4" />
+                  Hire Counsel
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choose a verified lawyer and pay later</h2>
+                <p className="mt-2 text-sm text-slate-500">This case is still open. Pick a verified lawyer to start checkout and assign the matter.</p>
+              </div>
+              <button
+                type="button"
+                onClick={loadRecommendedLawyers}
+                disabled={loadingLawyers}
+                className="rounded-full bg-[linear-gradient(135deg,#0f766e,#0f172a)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-200/60 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loadingLawyers ? 'Finding Lawyers...' : recommendedLawyers.length ? 'Refresh Lawyers' : 'Find Verified Lawyers'}
+              </button>
+            </div>
+
+            {recommendedLawyers.length ? (
+              <div className="space-y-5 p-8">
+                {recommendedLawyers.map((lawyer) => (
+                  <LawyerCard
+                    key={lawyer._id}
+                    lawyer={lawyer}
+                    action={(
+                      <div className="space-y-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+                        <p>Start payment to assign this lawyer to your case.</p>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLawyer(lawyer)}
+                          className="w-full rounded-full bg-[linear-gradient(135deg,#0f766e,#0f172a)] px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
+                        >
+                          Hire And Pay
+                        </button>
+                      </div>
+                    )}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
         {canLawyerManageStatus || canCloseCase ? (
           <section className="mt-8 overflow-hidden rounded-[36px] border border-white/80 bg-white/90 shadow-xl shadow-slate-200/70 backdrop-blur">
@@ -366,6 +445,17 @@ export default function CaseDetail() {
           </section>
         ) : null}
       </main>
+
+      {selectedLawyer ? (
+        <PaymentCheckout
+          caseId={caseData._id}
+          lawyerId={selectedLawyer._id}
+          lawyerName={selectedLawyer.name}
+          lawyerFee={selectedLawyer.averageFixedFee || 0}
+          onSuccess={handlePaymentSuccess}
+          onClose={() => setSelectedLawyer(null)}
+        />
+      ) : null}
     </div>
   );
 }

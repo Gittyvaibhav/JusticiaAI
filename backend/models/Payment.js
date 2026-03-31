@@ -44,6 +44,16 @@ const paymentSchema = new mongoose.Schema({
     },
   ],
   transactionId: String,
+  razorpayOrderId: {
+    type: String,
+    index: true,
+  },
+  razorpayPaymentId: String,
+  razorpaySignature: String,
+  currency: {
+    type: String,
+    default: 'INR',
+  },
   paymentMethod: {
     type: String,
     enum: ['card', 'bank', 'upi', 'wallet'],
@@ -56,6 +66,11 @@ const paymentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+paymentSchema.pre('save', function updateTimestamp(next) {
+  this.updatedAt = new Date();
+  next();
 });
 
 module.exports = mongoose.model('Payment', paymentSchema);

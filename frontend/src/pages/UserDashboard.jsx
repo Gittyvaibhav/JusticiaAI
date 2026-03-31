@@ -7,7 +7,7 @@ import Navbar from '../components/Navbar';
 import CaseCard from '../components/CaseCard';
 import { getSocket } from '../socket';
 
-function StatCard({ label, value, icon: Icon, tone }) {
+function StatCard({ label, value, icon: Icon, tone, iconHint }) {
   return (
     <div className="rounded-3xl bg-white p-6 shadow-md shadow-slate-200/60">
       <div className="flex items-center justify-between">
@@ -15,7 +15,7 @@ function StatCard({ label, value, icon: Icon, tone }) {
           <p className="text-sm text-slate-500">{label}</p>
           <p className="mt-2 text-3xl font-semibold text-slate-900">{value}</p>
         </div>
-        <div className={`rounded-2xl p-3 ${tone}`}>
+        <div className={`rounded-2xl p-3 ${tone}`} title={iconHint} aria-label={iconHint}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -85,10 +85,10 @@ export default function UserDashboard() {
         </section>
 
         <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Total Cases Submitted" value={stats.total} icon={FileText} tone="bg-blue-100 text-blue-700" />
-          <StatCard label="Cases Resolved" value={stats.resolved} icon={Gavel} tone="bg-green-100 text-green-700" />
-          <StatCard label="Cases In Progress" value={stats.inProgress} icon={TimerReset} tone="bg-orange-100 text-orange-700" />
-          <StatCard label="Cases Open" value={stats.open} icon={FolderOpen} tone="bg-sky-100 text-sky-700" />
+          <StatCard label="Total Cases Submitted" value={stats.total} icon={FileText} tone="bg-blue-100 text-blue-700" iconHint="File icon: total legal matters you have submitted" />
+          <StatCard label="Cases Resolved" value={stats.resolved} icon={Gavel} tone="bg-green-100 text-green-700" iconHint="Gavel icon: cases that have reached a final resolution" />
+          <StatCard label="Cases In Progress" value={stats.inProgress} icon={TimerReset} tone="bg-orange-100 text-orange-700" iconHint="Progress timer icon: cases currently assigned or actively moving" />
+          <StatCard label="Cases Open" value={stats.open} icon={FolderOpen} tone="bg-sky-100 text-sky-700" iconHint="Open folder icon: cases still waiting to be taken up" />
         </section>
 
         <section className="mt-10">

@@ -78,6 +78,14 @@ function emitCaseAvailable(caseDoc, extra = {}) {
   });
 }
 
+function emitChatNotification(recipientRole, recipientId, payload) {
+  if (!io || !recipientRole || !recipientId) {
+    return;
+  }
+
+  io.to(userRoom(recipientRole, recipientId)).emit('chat:notification', payload);
+}
+
 function initSocketServer(server) {
   io = new Server(server, {
     cors: {
@@ -167,8 +175,19 @@ function initSocketServer(server) {
 
         const populatedMessage = await chatMessage.populate('senderId', 'name role');
         const payload = serializeChatMessage(populatedMessage);
+        const recipientRole = socket.user.role === 'lawyer' ? 'user' : 'lawyer';
+        const recipientId = socket.user.role === 'lawyer' ? context.caseOwnerId : context.assignedLawyerId;
 
         io.to(caseRoom(caseId)).emit('chat:message', payload);
+        emitChatNotification(recipientRole, recipientId, {
+          caseId: toId(context.caseDoc._id),
+          title: context.caseDoc.title,
+          senderId: socket.user.id,
+          senderRole: socket.user.role,
+          senderName: payload.senderName,
+          message: payload.message,
+          createdAt: payload.createdAt,
+        });
 
         if (callback) {
           callback({ ok: true, message: payload });
@@ -193,4 +212,5 @@ module.exports = {
   roleRoom,
   caseRoom,
   emitCaseAvailable,
+  emitChatNotification,
 };

@@ -1,0 +1,105 @@
+.case-card {
+  @apply rounded-3xl bg-white p-6 shadow-md;
+  box-shadow: 0 10px 15px -3px rgba(226, 232, 240, 0.6), 0 4px 6px -4px rgba(226, 232, 240, 0.6);
+}
+
+  .case-card__header {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .case-card__content {
+    @apply space-y-3;
+  }
+
+  .case-card__badges {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .case-card__title {
+    @apply text-xl font-semibold text-slate-900;
+  }
+
+  .case-card__badge {
+    @apply rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .case-card__badge--type {
+    @apply bg-slate-100 uppercase tracking-wide text-slate-700;
+  }
+
+  .case-card__badge--status {
+    @apply capitalize;
+  }
+
+  .case-card__badge--status-open {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  .case-card__badge--status-assigned {
+    @apply bg-yellow-100 text-yellow-700;
+  }
+
+  .case-card__badge--status-in-progress {
+    @apply bg-orange-100 text-orange-700;
+  }
+
+  .case-card__badge--status-resolved {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .case-card__badge--status-closed,
+  .case-card__badge--status-default {
+    @apply bg-slate-100 text-slate-700;
+  }
+
+  .case-card__badge--strength-weak {
+    @apply bg-red-100 text-red-700;
+  }
+
+  .case-card__badge--strength-moderate {
+    @apply bg-yellow-100 text-yellow-700;
+  }
+
+  .case-card__badge--strength-strong {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .case-card__badge--strength-default {
+    @apply bg-slate-100 text-slate-700;
+  }
+
+  .case-card__meta {
+    @apply flex flex-wrap gap-4 text-sm text-slate-500;
+  }
+
+  .case-card__meta-item {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .case-card__meta-icon {
+    @apply h-4 w-4;
+  }
+
+  .case-card__summary {
+    @apply max-w-3xl text-sm leading-6 text-slate-600;
+  }
+
+  .case-card__actions {
+    @apply flex flex-col gap-2 sm:items-end;
+  }
+
+  .case-card__button {
+    @apply rounded-full px-4 py-2 text-sm font-semibold transition;
+  }
+
+  .case-card__button--primary {
+    @apply border border-blue-200 text-blue-700 hover:bg-blue-50;
+  }
+
+  .case-card__button--secondary {
+    @apply border border-slate-200 text-slate-700 hover:bg-slate-50;
+  }
+
+  .case-card__expanded {
+    @apply mt-6 border-t border-slate-100 pt-6;
+  }

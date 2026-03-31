@@ -1,0 +1,149 @@
+.payment-checkout {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm;
+  background-color: rgba(2, 6, 23, 0.6);
+}
+
+.payment-checkout__dialog {
+  @apply w-full max-w-xl overflow-hidden bg-white shadow-2xl;
+  border-radius: 32px;
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.2);
+  border-style: solid;
+  border-width: 1px;
+}
+
+  .payment-checkout__hero {
+    @apply px-6 py-6 text-white;
+    background: linear-gradient(135deg, #0f172a, #1e3a8a 58%, #0f766e);
+  }
+
+  .payment-checkout__eyebrow {
+    @apply text-xs font-semibold uppercase text-teal-100;
+    letter-spacing: 0.24em;
+  }
+
+  .payment-checkout__title {
+    @apply mt-2 text-3xl font-semibold;
+  }
+
+  .payment-checkout__subtitle {
+    @apply mt-2 text-sm text-slate-200;
+  }
+
+  .payment-checkout__form {
+    @apply space-y-6 p-6;
+  }
+
+  .payment-checkout__label {
+    @apply mb-3 block text-sm font-semibold text-slate-800;
+  }
+
+  .payment-checkout__label--compact {
+    @apply mb-2;
+  }
+
+  .payment-checkout__options {
+    @apply grid gap-3;
+  }
+
+  .payment-checkout__option {
+    @apply flex cursor-pointer items-start gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white;
+  }
+
+  .payment-checkout__radio {
+    @apply mt-1 h-4 w-4;
+  }
+
+  .payment-checkout__option-title {
+    @apply font-semibold text-slate-900;
+  }
+
+  .payment-checkout__option-copy {
+    @apply text-sm text-slate-500;
+  }
+
+  .payment-checkout__amount {
+    @apply w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-lg font-semibold text-slate-900;
+  }
+
+  .payment-checkout__milestones {
+    @apply space-y-3;
+  }
+
+  .payment-checkout__milestone-row {
+    @apply grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4;
+  }
+
+  @media (min-width: 640px) {
+    .payment-checkout__milestone-row {
+      grid-template-columns: 1fr 150px;
+    }
+  }
+
+  .payment-checkout__input {
+    @apply rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm;
+  }
+
+  .payment-checkout__summary {
+    @apply p-5 ring-1 ring-slate-200;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #f8fafc, #eef6ff);
+  }
+
+  .payment-checkout__summary-header {
+    @apply flex items-center justify-between gap-4;
+  }
+
+  .payment-checkout__summary-title {
+    @apply text-sm font-semibold text-slate-900;
+  }
+
+  .payment-checkout__summary-copy {
+    @apply mt-1 text-sm text-slate-500;
+  }
+
+  .payment-checkout__summary-amount {
+    @apply text-2xl font-semibold text-slate-900;
+  }
+
+  .payment-checkout__benefits {
+    @apply mt-4 grid gap-2 text-sm text-slate-600;
+  }
+
+  .payment-checkout__benefit {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .payment-checkout__benefit-icon {
+    @apply h-4 w-4;
+  }
+
+  .payment-checkout__benefit-icon--emerald {
+    @apply text-emerald-600;
+  }
+
+  .payment-checkout__benefit-icon--blue {
+    @apply text-blue-600;
+  }
+
+  .payment-checkout__benefit-icon--amber {
+    @apply text-amber-600;
+  }
+
+  .payment-checkout__actions {
+    @apply flex gap-3;
+  }
+
+  .payment-checkout__button {
+    @apply flex-1 rounded-full px-5 py-3 text-sm font-semibold transition;
+  }
+
+  .payment-checkout__button--secondary {
+    @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  }
+
+.payment-checkout__button--primary {
+  @apply text-white shadow-lg hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70;
+  background: linear-gradient(135deg, #0f766e, #0f172a);
+  box-shadow: 0 10px 15px -3px rgba(226, 232, 240, 0.7), 0 4px 6px -4px rgba(226, 232, 240, 0.7);
+}

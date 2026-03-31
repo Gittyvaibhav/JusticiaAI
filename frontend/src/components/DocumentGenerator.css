@@ -1,0 +1,52 @@
+  .document-generator {
+    @apply mx-auto max-w-2xl rounded-lg bg-white p-6 shadow;
+  }
+
+  .document-generator__heading {
+    @apply mb-6 flex items-center gap-2 text-2xl font-bold;
+  }
+
+  .document-generator__form,
+  .document-generator__preview {
+    @apply space-y-4;
+  }
+
+  .document-generator__label {
+    @apply mb-2 block font-semibold;
+  }
+
+  .document-generator__input {
+    @apply w-full rounded border px-3 py-2;
+  }
+
+  .document-generator__input--textarea {
+    @apply resize-y;
+  }
+
+  .document-generator__submit {
+    @apply w-full rounded bg-blue-600 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:bg-gray-400;
+  }
+
+  .document-generator__preview-box {
+    @apply max-h-96 overflow-y-auto rounded border bg-gray-50 p-4;
+  }
+
+  .document-generator__preview-text {
+    @apply whitespace-pre-wrap font-sans text-sm text-gray-800;
+  }
+
+  .document-generator__actions {
+    @apply flex gap-3;
+  }
+
+  .document-generator__button {
+    @apply flex-1 rounded py-2 font-semibold transition-colors;
+  }
+
+  .document-generator__button--secondary {
+    @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+  }
+
+  .document-generator__button--primary {
+    @apply flex items-center justify-center gap-2 bg-green-600 text-white hover:bg-green-700;
+  }

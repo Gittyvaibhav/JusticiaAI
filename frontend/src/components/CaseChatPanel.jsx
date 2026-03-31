@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { MessageSquare, Send, ShieldCheck } from 'lucide-react';
 import api from '../api';
 import { getSocket } from '../socket';
+import './CaseChatPanel.css';
 
 function formatTimestamp(value) {
   return new Date(value).toLocaleString();
@@ -86,7 +87,7 @@ export default function CaseChatPanel({ caseId, currentUser, counterpart, chatEn
     };
   }, [caseId]);
 
-  const sendMessage = async () => {
+  const sendMessage = () => {
     const trimmedDraft = draft.trim();
 
     if (!trimmedDraft || sending || !chatEnabled) {
@@ -116,15 +117,17 @@ export default function CaseChatPanel({ caseId, currentUser, counterpart, chatEn
 
   if (!chatEnabled) {
     return (
-      <section className="overflow-hidden rounded-[36px] border border-white/80 bg-white/85 shadow-xl shadow-slate-200/70 backdrop-blur">
-        <div className="bg-[linear-gradient(135deg,#f8fafc,#eef6ff_52%,#ecfeff)] p-8">
-          <div className="flex items-start gap-4">
-            <div className="rounded-2xl bg-white p-3 text-slate-700 shadow-sm shadow-slate-200/60">
-              <MessageSquare className="h-5 w-5" />
+      <section className="case-chat case-chat--disabled">
+        <div className="case-chat__disabled-banner">
+          <div className="case-chat__disabled-inner">
+            <div className="case-chat__disabled-icon-wrap">
+              <MessageSquare className="case-chat__icon" />
             </div>
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900">Case Chat</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">Real-time chat becomes available as soon as a lawyer accepts this case.</p>
+              <h2 className="case-chat__title">Case Chat</h2>
+              <p className="case-chat__disabled-copy">
+                Real-time chat becomes available as soon as a lawyer accepts this case.
+              </p>
             </div>
           </div>
         </div>
@@ -133,44 +136,48 @@ export default function CaseChatPanel({ caseId, currentUser, counterpart, chatEn
   }
 
   return (
-    <section className="overflow-hidden rounded-[36px] border border-white/80 bg-white/90 shadow-xl shadow-slate-200/70 backdrop-blur">
-      <div className="flex flex-wrap items-start justify-between gap-4 bg-[linear-gradient(135deg,#0f172a,#1e293b_60%,#0f766e)] px-8 py-6 text-white">
+    <section className="case-chat">
+      <div className="case-chat__hero">
         <div>
-          <h2 className="text-2xl font-semibold">Case Chat</h2>
-          <p className="mt-2 text-sm text-slate-300">
+          <h2 className="case-chat__title">Case Chat</h2>
+          <p className="case-chat__subtitle">
             Live conversation with {counterpart?.name || 'your case participant'}.
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">
-          <ShieldCheck className="h-4 w-4" />
+        <div className="case-chat__live-badge">
+          <ShieldCheck className="case-chat__icon" />
           Real-time
         </div>
       </div>
 
-      <div className="h-[440px] bg-[linear-gradient(180deg,#f8fafc,#eef2ff)] p-4 sm:p-6">
-        <div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-inner shadow-slate-100">
-          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
-            {loading ? <p className="text-sm text-slate-500">Loading messages...</p> : null}
+      <div className="case-chat__body">
+        <div className="case-chat__panel">
+          <div className="case-chat__messages">
+            {loading ? <p className="case-chat__loading">Loading messages...</p> : null}
             {!loading && messages.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center text-center">
-                <div className="rounded-full bg-blue-50 p-4 text-blue-700">
-                  <MessageSquare className="h-6 w-6" />
+              <div className="case-chat__empty">
+                <div className="case-chat__empty-icon-wrap">
+                  <MessageSquare className="case-chat__empty-icon" />
                 </div>
-                <p className="mt-4 text-base font-semibold text-slate-900">No messages yet</p>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">Use this space to coordinate next steps, share updates, and keep the case moving in real time.</p>
+                <p className="case-chat__empty-title">No messages yet</p>
+                <p className="case-chat__empty-copy">
+                  Use this space to coordinate next steps, share updates, and keep the case moving in real time.
+                </p>
               </div>
             ) : null}
             {messages.map((item) => {
               const isOwnMessage = item.senderId === currentUser?.id;
 
               return (
-                <div key={item._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-[26px] px-4 py-3 shadow-sm ${isOwnMessage ? 'bg-[linear-gradient(135deg,#2563eb,#1d4ed8)] text-white shadow-blue-200/60' : 'border border-slate-200 bg-slate-50 text-slate-800'}`}>
-                    <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${isOwnMessage ? 'text-blue-100' : 'text-slate-500'}`}>
+                <div key={item._id} className={`case-chat__message-row ${isOwnMessage ? 'case-chat__message-row--own' : 'case-chat__message-row--other'}`}>
+                  <div className={`case-chat__bubble ${isOwnMessage ? 'case-chat__bubble--own' : 'case-chat__bubble--other'}`}>
+                    <p className={`case-chat__bubble-author ${isOwnMessage ? 'case-chat__bubble-author--own' : 'case-chat__bubble-author--other'}`}>
                       {isOwnMessage ? 'You' : item.senderName}
                     </p>
-                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{item.message}</p>
-                    <p className={`mt-2 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-slate-400'}`}>{formatTimestamp(item.createdAt)}</p>
+                    <p className="case-chat__bubble-text">{item.message}</p>
+                    <p className={`case-chat__bubble-time ${isOwnMessage ? 'case-chat__bubble-time--own' : 'case-chat__bubble-time--other'}`}>
+                      {formatTimestamp(item.createdAt)}
+                    </p>
                   </div>
                 </div>
               );
@@ -178,8 +185,8 @@ export default function CaseChatPanel({ caseId, currentUser, counterpart, chatEn
             <div ref={bottomRef} />
           </div>
 
-          <div className="border-t border-slate-200 bg-white/90 p-4">
-            <div className="flex gap-3">
+          <div className="case-chat__composer">
+            <div className="case-chat__composer-row">
               <textarea
                 rows="2"
                 value={draft}
@@ -191,15 +198,15 @@ export default function CaseChatPanel({ caseId, currentUser, counterpart, chatEn
                   }
                 }}
                 placeholder="Type your message..."
-                className="w-full rounded-3xl border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-inner shadow-slate-100"
+                className="case-chat__textarea"
               />
               <button
                 type="button"
                 onClick={sendMessage}
                 disabled={sending || !draft.trim()}
-                className="inline-flex h-fit items-center gap-2 rounded-full bg-[linear-gradient(135deg,#0f172a,#1d4ed8)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200/60 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                className="case-chat__send"
               >
-                <Send className="h-4 w-4" />
+                <Send className="case-chat__icon" />
                 {sending ? 'Sending' : 'Send'}
               </button>
             </div>

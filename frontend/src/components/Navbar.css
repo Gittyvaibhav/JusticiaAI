@@ -1,0 +1,206 @@
+.navbar {
+  @apply sticky top-0 z-30 border-b backdrop-blur-xl;
+  border-bottom-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.75);
+}
+
+  .navbar__container {
+    @apply mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8;
+  }
+
+  .navbar__brand {
+    @apply flex items-center gap-3;
+  }
+
+.navbar__brand-icon {
+  @apply rounded-2xl p-2.5 shadow-lg;
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 15px -3px rgba(226, 232, 240, 0.6), 0 4px 6px -4px rgba(226, 232, 240, 0.6);
+  border-style: solid;
+  border-width: 1px;
+}
+
+  .navbar__brand-icon--lawyer {
+    @apply text-teal-800;
+    background: linear-gradient(135deg, #ccfbf1, #99f6e4);
+  }
+
+  .navbar__brand-icon--user {
+    @apply text-blue-800;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  }
+
+  .navbar__brand-svg {
+    @apply h-5 w-5;
+  }
+
+  .navbar__brand-label {
+    @apply text-sm font-semibold uppercase text-slate-500;
+    letter-spacing: 0.24em;
+  }
+
+  .navbar__brand-title {
+    @apply text-base font-semibold text-slate-900;
+  }
+
+.navbar__nav {
+  @apply order-3 flex w-full items-center gap-2 overflow-x-auto rounded-full p-1.5 shadow-sm md:order-none md:w-auto;
+  border-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 2px 0 rgba(226, 232, 240, 0.5);
+  border-style: solid;
+  border-width: 1px;
+}
+
+  .navbar__nav-link {
+    @apply rounded-full px-4 py-2 text-sm font-medium transition;
+  }
+
+  .navbar__nav-link--active {
+    @apply bg-slate-900 text-white;
+  }
+
+  .navbar__nav-link--inactive {
+    @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+
+  .navbar__actions {
+    @apply flex items-center gap-3;
+  }
+
+.navbar__icon-button {
+  @apply inline-flex items-center justify-center rounded-full p-2.5 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white;
+  border-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 2px 0 rgba(226, 232, 240, 0.6);
+  border-style: solid;
+  border-width: 1px;
+}
+
+  .navbar__icon-button--relative {
+    @apply relative;
+  }
+
+  .navbar__icon {
+    @apply h-4 w-4;
+  }
+
+  .navbar__notifications {
+    @apply relative;
+  }
+
+.navbar__badge {
+  @apply absolute -right-1 -top-1 inline-flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 font-semibold text-white;
+  font-size: 10px;
+  min-width: 1.25rem;
+}
+
+.navbar__notifications-panel {
+  @apply absolute right-0 top-14 z-20 overflow-hidden shadow-2xl;
+  width: 340px;
+  border-radius: 28px;
+  border-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 25px 50px -12px rgba(203, 213, 225, 0.4);
+  border-style: solid;
+  border-width: 1px;
+}
+
+  .navbar__notifications-header {
+    @apply px-5 py-4 text-white;
+    background: linear-gradient(135deg, #0f172a, #1e293b 58%, #0f766e);
+  }
+
+  .navbar__notifications-header-row {
+    @apply flex items-center justify-between;
+  }
+
+  .navbar__notifications-title {
+    @apply text-sm font-semibold;
+  }
+
+  .navbar__notifications-subtitle {
+    @apply text-xs text-slate-300;
+  }
+
+.navbar__sparkle-wrap {
+  @apply rounded-full p-2;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+  .navbar__notifications-body {
+    @apply p-4;
+  }
+
+  .navbar__notifications-toolbar {
+    @apply mb-3 flex justify-end;
+  }
+
+  .navbar__mark-read {
+    @apply text-xs font-semibold text-blue-600 hover:text-blue-700;
+  }
+
+  .navbar__notifications-list {
+    @apply max-h-96 space-y-3 overflow-y-auto;
+  }
+
+  .navbar__notifications-empty {
+    @apply rounded-3xl bg-slate-50 p-5 text-sm text-slate-500;
+  }
+
+  .navbar__notification-item {
+    @apply block rounded-3xl border p-4 transition hover:-translate-y-0.5 hover:shadow-md;
+  }
+
+  .navbar__notification-item--read {
+    @apply border-slate-200 bg-white;
+  }
+
+  .navbar__notification-item--unread {
+    @apply border-blue-200;
+    background: linear-gradient(135deg, rgba(219, 234, 254, 0.55), rgba(255, 255, 255, 0.95));
+  }
+
+  .navbar__notification-content {
+    @apply flex items-start justify-between gap-3;
+  }
+
+  .navbar__notification-title {
+    @apply text-sm font-semibold text-slate-900;
+  }
+
+  .navbar__notification-message {
+    @apply mt-1 text-sm leading-6 text-slate-600;
+  }
+
+  .navbar__notification-dot {
+    @apply mt-1 h-2.5 w-2.5 rounded-full bg-blue-500;
+  }
+
+  .navbar__notification-time {
+    @apply mt-3 uppercase text-slate-400;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+  }
+
+  .navbar__user {
+    @apply hidden text-right sm:block;
+  }
+
+  .navbar__user-name {
+    @apply text-sm font-semibold text-slate-900;
+  }
+
+  .navbar__user-role {
+    @apply text-xs uppercase text-slate-500;
+    letter-spacing: 0.2em;
+  }
+
+.navbar__logout {
+  @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white;
+  border-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 2px 0 rgba(226, 232, 240, 0.6);
+  border-style: solid;
+  border-width: 1px;
+}
